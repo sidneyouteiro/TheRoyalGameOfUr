@@ -5,31 +5,12 @@
 #define TY 10 /*Tamanho do tabuleiro vertical*/
 
 int draw(int tabuleiro[TY][TX]);
+int init_tabuleiro(int tabuleiro[TY][TX]);
 
 int main()
 {
   int tabuleiro[TY][TX]; /* array que guarda o tabuleiro*/
-
-  FILE* tabuleiro_a; /* arquivo que guarda o tabuleiro*/
-
-  if((tabuleiro_a = fopen("Ur_Tabuleiro.txt","r")) == NULL)
-  {
-    printf("Não foi possivel inicializar o tabuleiro\n");
-    return 1;
-  }
-
-  printf("\n"); /* temporario de formatação */
-  int y;
-  int x;
-
-  for (y = 0; y < TY; y++ )
-  {
-    for (x = 0; x < TX; x++)
-    {
-      tabuleiro[y][x] = fgetc(tabuleiro_a);
-    }
-  }
-
+  init_tabuleiro(tabuleiro);
   draw(tabuleiro);
   return 0;
 }
@@ -49,5 +30,28 @@ int draw(int tabuleiro[TY][TX])
   }
   printf("\n");
 
+  return 0;
+}
+
+int init_tabuleiro(int tabuleiro[TY][TX])
+{
+  FILE* tabuleiro_a; /* arquivo que guarda o tabuleiro*/
+
+  if((tabuleiro_a = fopen("Ur_Tabuleiro.txt","r")) == NULL)
+  {
+    printf("Não foi possivel inicializar o tabuleiro\n");
+    return 1;
+  }
+  
+  int y;
+  int x;
+
+  for (y = 0; y < TY; y++ )
+  {
+    for (x = 0; x < TX; x++)
+    {
+      tabuleiro[y][x] = fgetc(tabuleiro_a);
+    }
+  }
   return 0;
 }
