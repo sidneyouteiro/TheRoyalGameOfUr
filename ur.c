@@ -39,7 +39,7 @@ int draw(int tabuleiro[TY][TX])
 {
   int y;
   int x;
-  printf("\033[2J\033[1;1H");
+  printf("\033[2J\033[1;1H"); //mantem o tabuleiro no topo da tela
   for (y = 0; y < TY; y++)
   {
     for (x = 0; x < TX; x++)
@@ -48,6 +48,6 @@ int draw(int tabuleiro[TY][TX])
     }
   }
   printf("\n");
-  
+
   return 0;
 }
