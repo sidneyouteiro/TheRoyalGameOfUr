@@ -1,26 +1,53 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define TX 43 /*Tamanho do tabuleiro horizontal*/
+#define TY 10 /*Tamanho do tabuleiro vertical*/
+
+int draw(int tabuleiro[TY][TX]);
 
 int main()
 {
-  FILE* tabuleiro;
-  int c;
-  if((tabuleiro = fopen("Ur_Tabuleiro.txt","r")) == NULL)
+  int tabuleiro[TY][TX]; /* array que guarda o tabuleiro*/
+
+  FILE* tabuleiro_a; /* arquivo que guarda o tabuleiro*/
+
+  if((tabuleiro_a = fopen("Ur_Tabuleiro.txt","r")) == NULL)
   {
     printf("Não foi possivel inicializar o tabuleiro\n");
     return 1;
   }
-  printf("\n");
-  while(1)
+
+  printf("\n"); /* temporario de formatação */
+  int y;
+  int x;
+
+  for (y = 0; y < TY; y++ )
   {
-    c = fgetc(tabuleiro);
-    if (feof(tabuleiro))
+    for (x = 0; x < TX; x++)
     {
-      break;
+      tabuleiro[y][x] = fgetc(tabuleiro_a);
     }
-    printf("%c", c);
   }
 
+  draw(tabuleiro);
+  return 0;
+}
+
+
+int draw(int tabuleiro[TY][TX])
+{
+  int y;
+  int x;
+  printf("\033[2J\033[1;1H");
+  for (y = 0; y < TY; y++)
+  {
+    for (x = 0; x < TX; x++)
+    {
+      printf("%c", tabuleiro[y][x]);
+    }
+  }
+  printf("\n");
+  
   return 0;
 }
