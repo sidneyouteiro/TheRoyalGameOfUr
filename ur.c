@@ -1,14 +1,31 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-/*V-------------------Macros*/
+
+/*-------------------Macros*/
 #define TX 43 /*Tamanho do tabuleiro horizontal*/
 #define TY 10 /*Tamanho do tabuleiro vertical*/
+#define ROSA_1 (x < 6 && y < 4)
+#define ROSA_2 (x < 6 && y > 5)
+#define ROSA_3 ((x > 14 && x < 21) && (y > 2 && y < 7))
+#define ROSA_4 (x > 33 && y < 4)
+#define ROSA_5 (x > 33 && y > 5)
 
-int tabuleiro[TY][TX]; /* array que guarda o tabuleiro*/
-int sconfronto_p1[6]; /*vetor do caminho proprio do jogador 1*/
-int sconfronto_p2[6]; /*vetor do caminho proprio do jogador 2*/
-int cconfronto[8]; /*vetor do caminho em que ambos jogadores podem usar*/
+/* cores para uso no terminal*/
+#define RED   "\x1B[31m"
+#define GRN   "\x1B[32m"
+#define YEL   "\x1B[33m"
+#define BLU   "\x1B[34m"
+#define MAG   "\x1B[35m"
+#define CYN   "\x1B[36m"
+#define WHT   "\x1B[37m"
+#define RESET "\x1B[0m"
+
+
+char tabuleiro[TY][TX]; /* array que guarda o tabuleiro*/
+int sconfronto_p1[6]; /* vetor do caminho proprio do jogador 1*/
+int sconfronto_p2[6]; /* vetor do caminho proprio do jogador 2*/
+int cconfronto[8]; /* vetor do caminho em que ambos jogadores podem usar*/
 
 typedef struct _jog{
   char nome[21];
@@ -16,16 +33,15 @@ typedef struct _jog{
 }player;
 
 typedef struct _pec{
-  int imunidade; /*0 pode ser tomada, 1 nao pode ser tomada*/
-  int id; /*jogador 1 tem pecas com id impar, jogador 2 par*/
-  int no_jogo; /*mostra se a peca esta ou nao no tabuleiro. 1 esta, 0 nao esta*/
+  int imunidade; /* 0 pode ser tomada, 1 nao pode ser tomada*/
+  int id; /* jogador 1 tem pecas com id impar, jogador 2 par*/
+  int no_jogo; /* mostra se a peca esta ou nao no tabuleiro. 1 esta, 0 nao esta*/
 }peca;
 
 void draw();
 void init_tabuleiro();
 int delay(unsigned int milliseconds);
 int dados();
-int delay(unsigned int milliseconds);
 void jogar();
 void init_jogador(player* play1,player* play2);/*pega as informacoes dos jogadores*/
 void init_peca(peca* p1,peca* p2); /*inicializa as pecas de cada jogador*/
@@ -57,7 +73,10 @@ void draw(){
   {
     for (x = 0; x < TX; x++)
     {
-      printf("%c", tabuleiro[y][x]);
+      if (ROSA_1 || ROSA_2 || ROSA_3 || ROSA_4 || ROSA_5)
+        printf(RED "%c" RESET, tabuleiro[y][x]);
+      else
+        printf("%c", tabuleiro[y][x]);
     }
   }
   printf("\n");
@@ -94,8 +113,14 @@ void jogar(){
   init_tabuleiro();
   while (1)
   {
-    /*Jogo*/
+    /*verificar movimentos
+      atualizar tabuleiro
+      desenhar peças
+      verificar vitoria
+      tela vitoria(?)
+      casa flor*/
     draw();
+    dados();
     delay(10000);
   }
   free(jogador1);
@@ -166,3 +191,29 @@ int delay(unsigned int milliseconds)
 
     return 0;
 }
+
+
+
+/*
++----+----+----+----+         +----+----+
+| \/ |    |    |    |         |    | \/ |
+| /\ |    |    |    |  1P     |    | /\ |
++------------------------+--------------+
+|    |    |    | \/ |    |    |    |    |
+|    |    |    | /\ |    |    |    |    |
++------------------------+--------------+
+| \/ |    |    |    |  2P     |    | \/ |
+| /\ |    |    |    |         |    | /\ |
++----+----+----+----+         +----+----+
+
+fileira do meio - l=5 e c=3+5*k, sendo k um inteiro nao negativo
+fileira superior esquerda - l=2 , c=3+5k, //
+fileira inferior esquerda - l=8 , //
+
+coordenadas da rosa:
+ superior esquerda = [2][3]
+ superior direita = [2][38]
+ meio = [5][18]
+ inferior esquerdo = [8][3]
+ inferior direito = [8][38]
+*/
