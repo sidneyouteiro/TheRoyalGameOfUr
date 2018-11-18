@@ -46,6 +46,7 @@ int main()
    menu=0;
    }
    return 0;
+ }
 
 
 void draw(){
@@ -84,26 +85,30 @@ void init_tabuleiro(){
 
 void jogar(){
   srandom(time(NULL));
-  player* jogador1;
-  player* jogador2;
+  player* jogador1 = (player*) malloc(sizeof(player));
+  player* jogador2 = (player*) malloc(sizeof(player));
   peca jg1[7];
   peca jg2[7];
   init_jogador(jogador1,jogador2);
   init_peca(jg1,jg2);
   init_tabuleiro();
-  draw();
-  while (1) {
-    /*jogo*/
+  while (1)
+  {
+    /*Jogo*/
+    draw();
+    delay(10000);
   }
+  free(jogador1);
+  free(jogador2);
 }
 
 void init_jogador(player* play1,player* play2){/*erro de segmentacao na hora de ler o nome*/
   printf("Nome do jogador 1:\n");
-  scanf("%s",play1->nome);
+  scanf("%s", &play1->nome);
   printf("Nome do jogador 2:\n");
-  scanf("%s",play2->nome);
-  (play1->pecas_ganhas)=0;
-  (play2->pecas_ganhas)=0;
+  scanf("%s", &play2->nome);
+  (play1->pecas_ganhas) = 0;
+  (play2->pecas_ganhas) = 0;
   }
 
 void init_peca(peca* p1,peca* p2){/*ainda nao foi testa em conjunto com as outras funcoes*/
@@ -122,34 +127,6 @@ void init_peca(peca* p1,peca* p2){/*ainda nao foi testa em conjunto com as outra
     (p2[i].id)=id2;
     id2+=2;
   }
-}
-
-int dados(){
-  int d1 = random() % 2;
-  int d2 = random() % 2;
-  int d3 = random() % 2;
-  int d4 = random() % 2;
-  int total = d1 + d2 + d3 + d4;
-  delay(250);
-  printf("%d\n", d1);
-  delay(250);
-  printf("%d\n", d2);
-  delay(250);
-  printf("%d\n", d3);
-  delay(250);
-  printf("%d\n", d4);
-  delay(250);
-   printf("\n%d\n", total);
-   return total;
- }
-
-int delay(unsigned int milliseconds){
-    long delay; //tempo que o programa fica parado
-    clock_t t0,tn; //t0 é o tempo de inicio do delay, tn é o tempo atual
-     delay = milliseconds*(CLOCKS_PER_SEC/1000);
-     t0 = tn = clock();
-     while( (tn-t0) < delay )tn = clock();
-     return 0;
 }
 
 int dados()
@@ -184,7 +161,6 @@ int delay(unsigned int milliseconds)
     delay = milliseconds*(CLOCKS_PER_SEC/1000);
 
     t0 = tn = clock();
-
     while( (tn-t0) < delay )
         tn = clock();
 
