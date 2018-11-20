@@ -2,9 +2,14 @@
 #include <stdlib.h>
 #include <time.h>
 
-
+/*-------------------Macros*/
 #define TX 43 /*Tamanho do tabuleiro horizontal*/
 #define TY 10 /*Tamanho do tabuleiro vertical*/
+#define ROSA_1 (x < 6 && y < 4)
+#define ROSA_2 (x < 6 && y > 5)
+#define ROSA_3 ((x > 14 && x < 21) && (y > 2 && y < 7))
+#define ROSA_4 (x > 33 && y < 4)
+#define ROSA_5 (x > 33 && y > 5)
 
 /* cores para uso no terminal*/
 #define RED   "\x1B[31m"
@@ -72,7 +77,7 @@ void draw(){
   {
     for (x = 0; x < TX; x++)
     {
-      if (x < 6 && y < 4)
+      if (ROSA_1 || ROSA_2 || ROSA_3 || ROSA_4 || ROSA_5)
         printf(RED "%c" RESET, tabuleiro[y][x]);
       else
         printf("%c", tabuleiro[y][x]);
@@ -123,6 +128,7 @@ void jogar(){
     dados();
     desenhar_peca(jogador1,'2',1,17);
     draw();
+    dados();
     delay(10000);
     break;
 
