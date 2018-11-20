@@ -1,14 +1,27 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-/*V-------------------Macros*/
+
+
 #define TX 43 /*Tamanho do tabuleiro horizontal*/
 #define TY 10 /*Tamanho do tabuleiro vertical*/
 
-int tabuleiro[TY][TX]; /* array que guarda o tabuleiro*/
-int sconfronto_p1[6]; /*vetor do caminho proprio do jogador 1*/
-int sconfronto_p2[6]; /*vetor do caminho proprio do jogador 2*/
-int cconfronto[8]; /*vetor do caminho em que ambos jogadores podem usar*/
+/* cores para uso no terminal*/
+#define RED   "\x1B[31m"
+#define GRN   "\x1B[32m"
+#define YEL   "\x1B[33m"
+#define BLU   "\x1B[34m"
+#define MAG   "\x1B[35m"
+#define CYN   "\x1B[36m"
+#define WHT   "\x1B[37m"
+#define RESET "\x1B[0m"
+
+
+char tabuleiro[TY][TX]; /* array que guarda o tabuleiro*/
+/*-1 vazio, id da peca*/
+int sconfronto_p1[6]; /* vetor do caminho proprio do jogador 1*/
+int sconfronto_p2[6]; /* vetor do caminho proprio do jogador 2*/
+int cconfronto[8]; /* vetor do caminho em que ambos jogadores podem usar*/
 
 typedef struct _jog{
   char nome[21];
@@ -16,25 +29,27 @@ typedef struct _jog{
 }player;
 
 typedef struct _pec{
-  int imunidade; /*0 pode ser tomada, 1 nao pode ser tomada*/
-  int id; /*jogador 1 tem pecas com id impar, jogador 2 par*/
-  int no_jogo; /*mostra se a peca esta ou nao no tabuleiro. 1 esta, 0 nao esta*/
+  int imunidade; /* 0 pode ser tomada, 1 nao pode ser tomada*/
+  char id; /* jogador 1 tem pecas com id impar, jogador 2 par*/
+  int no_jogo; /* mostra se a peca esta ou nao no tabuleiro. 1 esta, 0 nao esta*/
 }peca;
 
 void draw();
 void init_tabuleiro();
 int delay(unsigned int milliseconds);
 int dados();
-int delay(unsigned int milliseconds);
 void jogar();
 void init_jogador(player* play1,player* play2);/*pega as informacoes dos jogadores*/
 void init_peca(peca* p1,peca* p2); /*inicializa as pecas de cada jogador*/
+void init_caminhos();
+void desenhar_peca(player* ply,char id_peca,int x, int y);
 
 
 int main()
 {
   int menu;
   while(1){
+   system("clear");
    printf("\n1-Jogar\n2-Sair\n");
    scanf("%d",&menu);
    switch (menu) {
@@ -57,7 +72,10 @@ void draw(){
   {
     for (x = 0; x < TX; x++)
     {
-      printf("%c", tabuleiro[y][x]);
+      if (x < 6 && y < 4)
+        printf(RED "%c" RESET, tabuleiro[y][x]);
+      else
+        printf("%c", tabuleiro[y][x]);
     }
   }
   printf("\n");
@@ -92,11 +110,22 @@ void jogar(){
   init_jogador(jogador1,jogador2);
   init_peca(jg1,jg2);
   init_tabuleiro();
+  init_caminhos();
   while (1)
   {
-    /*Jogo*/
+    /*verificar movimentos
+      atualizar tabuleiro
+      desenhar peças
+      verificar vitoria
+      tela vitoria(?)
+      casa flor*/
+    draw();
+    dados();
+    desenhar_peca(jogador1,'2',1,17);
     draw();
     delay(10000);
+    break;
+
   }
   free(jogador1);
   free(jogador2);
@@ -111,20 +140,20 @@ void init_jogador(player* play1,player* play2){/*erro de segmentacao na hora de 
   (play2->pecas_ganhas) = 0;
   }
 
-void init_peca(peca* p1,peca* p2){/*ainda nao foi testa em conjunto com as outras funcoes*/
+void init_peca(peca* p1,peca* p2){
   int i,id1,id2;
   id1=1;
   id2=0;
   for(i=0;i<7;i++){
     (p1[i].imunidade)=0;
     (p1[i].no_jogo)=0;
-    (p1[i].id)=id1;
+    (p1[i].id)=id1+'0'; //somar '0' transforma um inteiro em char
     id1+=2;
   }
   for(i=0;i<7;i++){
     (p2[i].imunidade)=0;
     (p2[i].no_jogo)=0;
-    (p2[i].id)=id2;
+    (p2[i].id)=id2+'0';
     id2+=2;
   }
 }
@@ -166,3 +195,46 @@ int delay(unsigned int milliseconds)
 
     return 0;
 }
+
+void init_caminhos(){
+ int i;
+   for(i=0;i<8;i++){
+     cconfronto[i]=-1;
+     if(i<6){
+       sconfronto_p1[i]=-1;
+       sconfronto_p2[i]=-1;
+     }
+   }
+
+}
+void desenhar_peca(player* ply,char id_peca,int x, int y){
+  tabuleiro[x][y]=id_peca;
+  tabuleiro[x+1][y]=(ply->nome[0]);
+  tabuleiro[x][y+1]=(ply->nome[0]);
+  tabuleiro[x+1][y+1]=(ply->nome[0]);
+}
+
+
+/*
++----+----+----+----+         +----+----+
+| \/ |    |    |    |         |    | \/ |
+| /\ |    |    |    |  1P     |    | /\ |
++------------------------+--------------+
+|    |    |    | \/ |    |    |    |    |
+|    |    |    | /\ |    |    |    |    |
++------------------------+--------------+
+| \/ |    |    |    |  2P     |    | \/ |
+| /\ |    |    |    |         |    | /\ |
++----+----+----+----+         +----+----+
+
+fileira do meio - l=4 e c=2+5*k, sendo k um inteiro nao negativo
+fileira superior esquerda - l=1 , c=2+5k, //
+fileira inferior esquerda - l=7 , //
+
+coordenadas da rosa:
+ superior esquerda = [1][2]
+ superior direita = [1][37]
+ meio = [4][17]
+ inferior esquerdo = [7][2]
+ inferior direito = [7][37]
+*/
