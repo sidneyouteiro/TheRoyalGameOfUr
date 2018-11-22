@@ -10,7 +10,7 @@
 #define ROSA_3 ((x > 14 && x < 21) && (y > 2 && y < 7))
 #define ROSA_4 (x > 33 && y < 4)
 #define ROSA_5 (x > 33 && y > 5)
-#define VITORIA (play1.pecas_ganhas==7 || play2.pecas_ganhas==7)
+#define VITORIA (jogador1->pecas_ganhas==7 || jogador2->pecas_ganhas==7)
 
 /* cores para uso no terminal*/
 #define RED   "\x1B[31m"
@@ -58,7 +58,7 @@ void init_caminhos();
 void desenhar_peca(player* ply,char id_peca,int posic,int jogador);
 char verificamov(int dado,peca* jg);
 int validamov(int i, int dice,int p);
-void movp1(char mov,peca* jg1,int dice);
+void movp1(char mov,peca* jg1,int dice,player* ply1);
 void movp2(char mov,peca* jg2,int dice,player* ply2);
 void desenhar_sempeca(int posic,int ply);
 
@@ -128,6 +128,7 @@ void jogar(){
   peca jg1[7];
   peca jg2[7];
   int totdado;
+  char escolha;
   init_jogador(jogador1,jogador2);
   init_peca(jg1,jg2);
   init_tabuleiro();
@@ -137,11 +138,8 @@ void jogar(){
     draw();//turno do jogador 1
     totdado=dados();
     escolha=verificamov(totdado,jg1);
-    if(escolha!='n'){
-      movp1(escolha,jg1);
-    }
-    else
-      delay(5000);
+    if(escolha!='n') movp1(escolha,jg1,totdado,jogador1);
+    else delay(5000);
     if(VITORIA){
        tela_vitoria(jogador1);
        break;}
@@ -149,7 +147,7 @@ void jogar(){
     totdado=dados();
     escolha=verificamov(totdado,jg2);
     if(escolha!='n'){
-      movp2(escolha,jg2,totdado);
+      movp2(escolha,jg2,totdado,jogador2);
     }
     else
       delay(5000);
@@ -236,7 +234,6 @@ void init_caminhos()
      }
    }
 
-}
 void desenhar_peca(player* ply,char id_peca,int posic,int jogador){
   int x, y;
   if(jogador==1){
@@ -294,7 +291,8 @@ void desenhar_peca(player* ply,char id_peca,int posic,int jogador){
 }
 
 char verificamov(int dado,peca* jg){
-  char peca_movivel={'n','n','n','n','n','n','n'};
+  char peca_movivel[7]={'n','n','n','n','n','n','n'};
+  char opcao;
   int k=0;
   int i;
   printf("\nMovimentos possiveis:");
@@ -333,9 +331,9 @@ char verificamov(int dado,peca* jg){
   }
    else{
      while (1) {
-     printf("\nSelecione o movimento desejado: ", );
+     printf("\nSelecione o movimento desejado: ");
      scanf("%c",&opcao);
-     for(i=0,i<7,i++)
+     for(i=0;i<7;i++)
        if(peca_movivel[i]==opcao)
         return opcao;
      printf("\nMovimento impossivel");
@@ -346,21 +344,16 @@ char verificamov(int dado,peca* jg){
 
 int validamov(int i, int dice,int p){
   if(p==1){
-    if(caminho_p1[i+dice]='v' || (caminho_p1[i+dice]='r' && (i+dice)!=8)
+    if(caminho_p1[i+dice]='v' || (caminho_p1[i+dice]='r' && (i+dice)!=8))
       return 1;
     else
-      return 0;
-
-  }
+      return 0;}
   else{
-    if(caminho_p2[i+dice]='v' || (caminho_p2[i+dice]='r' && (i+dice)!=8)
+    if(caminho_p2[i+dice]='v' || (caminho_p2[i+dice]='r' && (i+dice)!=8))
       return 1;
     else
       return 0;
-  }
-
-
-}
+}}
 
 
 void movp1(char mov,peca* jg1,int dice,player* ply1){
@@ -373,16 +366,16 @@ void movp1(char mov,peca* jg1,int dice,player* ply1){
      if(4<k+dice<=12) caminho_p2[k+dice]='r';
      if(k+dice==15){
        pecachegada(mov,jg1);
-       ply1.pecas_ganhas++;}
-     else desenhar_peca(ply1,mov,k+dice,1)
+       ply1->pecas_ganhas++;}
+     else desenhar_peca(ply1,mov,k+dice,1);
      desenhar_sempeca(k,1);
    }
    else{
      int z=0;
      while(jg1[z].no_jogo!=0) z++;
-     caminho_p1[dice]=jg1[z]->id;
+     caminho_p1[dice]=jg1[z].id;
      jg1[z].no_jogo=1;
-     desenhar_peca(ply1,jg1[z]->id,dice,1);
+     desenhar_peca(ply1,jg1[z].id,dice,1);
    }
 }
 
@@ -396,16 +389,16 @@ void movp2(char mov,peca* jg2,int dice,player* ply2){
     if(4<k+dice<=12) caminho_p1[k+dice]='r';
     if(k+dice==15){
       pecachegada(mov,jg2);
-      ply2.pecas_ganhas++;}
-    else desenhar_peca(ply2,mov,k+dice,2)
+      ply2->pecas_ganhas++;}
+    else desenhar_peca(ply2,mov,k+dice,2);
     desenhar_sempeca(k,2);
   }
   else{
     int z=0;
     while(jg2[z].no_jogo!=0) z++;
-    caminho_p2[dice]=jg2[z]->id;
+    caminho_p2[dice]=jg2[z].id;
     jg2[z].no_jogo=1;
-    desenhar_peca(ply2,jg2[z]->id,dice,2);
+    desenhar_peca(ply2,jg2[z].id,dice,2);
   }
 }
 
@@ -415,18 +408,18 @@ void desenhar_sempeca(int posic,int ply){
    if(posic==4){
      tabuleiro[1][2]="\\";
      tabuleiro[2][2]="/";
-     tabuleiro[1][3]=" /";
+     tabuleiro[1][3]="/";
      tabuleiro[2][3]="\\";
    }
    if(posic==13){
    tabuleiro[1][37]="\\";
    tabuleiro[2][37]="/";
-   tabuleiro[1][38]=" /";
+   tabuleiro[1][38]="/";
    tabuleiro[2][38]="\\";}
    if(posic==8){
      tabuleiro[4][17]="\\";
      tabuleiro[5][17]="/";
-     tabuleiro[4][18]=" /";
+     tabuleiro[4][18]="/";
      tabuleiro[5][18]="\\";
    if(posic<4){
      x=1;
@@ -464,18 +457,18 @@ void desenhar_sempeca(int posic,int ply){
     if(posic==4){
       tabuleiro[7][2]="\\";
       tabuleiro[8][2]="/";
-      tabuleiro[7][3]=" /";
+      tabuleiro[7][3]="/";
       tabuleiro[8][3]="\\";
     }
     if(posic==13){
     tabuleiro[7][37]="\\";
     tabuleiro[8][37]="/";
-    tabuleiro[7][38]=" /";
+    tabuleiro[7][38]="/";
     tabuleiro[8][38]="\\";}
     if(posic==8){
       tabuleiro[4][17]="\\";
       tabuleiro[5][17]="/";
-      tabuleiro[4][18]=" /";
+      tabuleiro[4][18]="/";
       tabuleiro[5][18]="\\";
     }
     if(posic<4){
