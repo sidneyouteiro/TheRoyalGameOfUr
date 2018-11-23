@@ -6,11 +6,11 @@
 /*-------------------Macros*/
 #define TX 43 /*Tamanho do tabuleiro horizontal*/
 #define TY 10 /*Tamanho do tabuleiro vertical*/
-#define ROSA_1 (x < 6 && y < 4)
-#define ROSA_2 (x < 6 && y > 5)
-#define ROSA_3 ((x > 14 && x < 21) && (y > 2 && y < 7))
-#define ROSA_4 (x > 28 && x < 31) && y < 4)
-#define ROSA_5 (x > 28 && x < 31) && y > 5)
+#define ROSA_1 ((x > 1  && x < 5 ) && (y > 0 && y < 3))
+#define ROSA_2 ((x > 1  && x < 5 ) && (y > 6 && y < 9))
+#define ROSA_3 ((x > 15 && x < 20) && (y > 3 && y < 6))
+#define ROSA_4 ((x > 30 && x < 35) && (y > 0 && y < 3))
+#define ROSA_5 ((x > 30 && x < 35) && (y > 6 && y < 9))
 
 
 /* cores para uso no terminal*/
@@ -32,6 +32,7 @@ typedef struct _cas{
   int peca; // 0 = vazia, positivo p1, negativo p2
   int rosa; // 0 = nao é rosa, 1 = rosa
   int finalVetor;
+  int disAtePonto; //distancia ate o fim do tabuleiro, se 0 não é possivel pontuar
   struct casa *p_casa;
   struct casa *p1_casa;
   struct casa *p2_casa;
@@ -72,18 +73,26 @@ void init(); //att
 int verifica_vitoria();//att
 void tela_vitoria(int ply);//att
 int loading(unsigned int milliseconds);
+int atualiza(int valorDado, peca* pecaMovida,int posic);
+void historia();
+int instrucao();
 
 int main()
 {
   int menu;
   while(1){
    system("clear");
-   printf("\n1-Jogar\n2-Sair\n");
+   printf("\n1-Jogarr\n2-Regras\n3-historia\n4-Sair\n");
    scanf("%d",&menu);
    switch (menu) {
-     case 1:jogar();
-            break;
-     case 2:return 0;
+     case 1: jogar();
+             break;
+     case 2: instrucao();
+             break;
+     case 3: historia();
+             break;
+     case 4: return 0;
+
      default:printf("Escolha uma das opçoes, por favor");
    }
    menu=0;
@@ -107,6 +116,27 @@ void draw(){
     }
   }
   printf("\n");
+  int placarP1 = 0;
+  int placarP2 = 0;
+  for(int j = 0; j < 7; j++)
+  {
+    placarP1 += pecasP1[j].pontuada;
+    placarP2 += pecasP2[j].pontuada;
+  }
+  printf("Placar: p1-%d p2-%d", placarP1, placarP2);
+}
+
+void historia(){
+  system("clear");
+  printf("\nThe Royal Game of Ur ou Game of Ur, foi popular em todo o Oriente Médio no terceiro milênio A.C e tabuleiros para ele");
+  printf(" foram encontrados no Irã, Síria, Egito, Líbano, Sri Lanka, Chipre e Creta. Jogo de Ur eventualmente adquiriu significado\n");
+  printf(" supersticioso fornecendo previsões vagas para o futuro dos jogadores se eles pousarem em certas casas do tabuleiro,");
+  printf(" como \nVocê encontrará um amigo\n ou \nVocê se tornará poderoso como um leão.\n\nO jogo possui esse nome devido ao seu redescobrimento");
+  printf(" em uma das escavações do arqueologo Sir Leonard Woolley no cemiterio real de ur. Entretanto mais tarde arqueologos descobririam copias do jogo em varias localidade do Oriente Medio.\n");
+  printf(" E as regras só foram redescobertas em 1980, pelo historiador Irving Finkel através de placa de barro escritas por um escriba babiloniano\n");
+  printf("Pressione ENTER key para continuar\n");
+  getchar();
+  getchar();
 }
 
 
@@ -132,31 +162,38 @@ void init_tabuleiro(){
 void jogar(){
   srandom(time(NULL));
   int totdado,vencedor;
-  char escolha;
+  int escolha;
   init();
   while (1)
   {
     //draw()->dado();->vericar movimentos possiveis->input do jogador->
     //->atualizar tabuleiro
 
-    draw();//turno do jogador 1
+    draw();
+    printf("\nTurno de %s\n",jogador1);
     totdado=dados();
-    //verifica
-    peca* pecaMovida = &pecasP1[n];
-    atualiza(totdado, pecaMovida);
-
-    if(vencedor=verifica_vitoria()) tela_vitoria(vencedor);
-    draw();//turno do jogador 2
+    escolha=verificamov(totdado,pecasP1);
+    if(escolha!=0){
+      atualiza(totdado, pecasP1,escolha);
+    }
+    if(vencedor=verifica_vitoria()){
+      tela_vitoria(vencedor);
+      break;
+    }
+    draw();
+    printf("\nTurno de %s\n",jogador2);
     totdado=dados();
-    //verifica
-    peca* pecaMovida = &pecasP1[n];
-    atualiza(totdado, pecaMovida);
+    escolha=verificamov(totdado,pecasP1);
+    if(escolha!=0){
+      atualiza(totdado, pecasP2,escolha);
+    }
+    if(vencedor=verifica_vitoria()){
+      tela_vitoria(vencedor);
+      break;
+    }
 
-    if(vencedor=verifica_vitoria()) tela_vitoria(vencedor);
-
-      }
+  }
 }
-
 
 void init_jogador(){
   printf("Nome do jogador 1:\n");
@@ -271,6 +308,7 @@ void init_caminhos()
     inicialp1[i].cordenada_x = 1;
     inicialp1[i].cordenada_y = 17-5*i;
     inicialp1[i].peca = 0;
+    inicialp1[i].disAtePonto = 0;
     if(i == 3)
     {
       inicialp1[i].rosa = 1;
@@ -281,7 +319,7 @@ void init_caminhos()
     {
       inicialp1[i].rosa = 0;
       inicialp1[i].finalVetor = 0;
-      inicialp1[i].p_casa = NULL;
+      inicialp1[i].p_casa = &inicialp1[i+1];
     }
     inicialp1[i].p1_casa = NULL;
     inicialp1[i].p2_casa = NULL;
@@ -293,6 +331,7 @@ void init_caminhos()
     inicialp2[i].cordenada_x = 7;
     inicialp2[i].cordenada_y = 17-5*i;
     inicialp2[i].peca = 0;
+    inicialp1[i].disAtePonto = 0;
     if(i == 3)
     {
       inicialp2[i].rosa = 1;
@@ -303,7 +342,7 @@ void init_caminhos()
     {
       inicialp2[i].rosa = 0;
       inicialp2[i].finalVetor = 0;
-      inicialp2[i].p_casa = NULL;
+      inicialp2[i].p_casa = &inicialp2[i+1];
     }
     inicialp2[i].p1_casa = NULL;
     inicialp2[i].p2_casa = NULL;
@@ -315,17 +354,24 @@ void init_caminhos()
     finalp1[i].cordenada_x = 1;
     finalp1[i].cordenada_y = 37-5*i;
     finalp1[i].peca = 0;
-    if(i == 2)
+    finalp1[i].disAtePonto = 2 - i;
+    if(i == 1)
     {
       finalp1[i].rosa = 1;
+      finalp1[i].finalVetor = 0;
+      finalp1[i].p_casa  = &finalp1[i+1];
+    }
+    else if (i == 2)
+    {
       finalp1[i].finalVetor = 1;
+      finalp1[i].p_casa = NULL;
     }
     else
     {
       finalp1[i].rosa = 0;
       finalp1[i].finalVetor = 0;
+      finalp1[i].p_casa  = &finalp1[i+1];
     }
-    finalp1[i].p_casa  = NULL;
     finalp1[i].p1_casa = NULL;
     finalp1[i].p2_casa = NULL;
   }
@@ -335,18 +381,25 @@ void init_caminhos()
   {
     finalp2[i].cordenada_x = 7;
     finalp2[i].cordenada_y = 37-5*i;
-    finalp2[i].peca = 0;
-    if(i == 2)
+    finalp1[i].peca = 0;
+    finalp1[i].disAtePonto = 2 - i;
+    if(i == 1)
     {
       finalp2[i].rosa = 1;
+      finalp2[i].finalVetor = 0;
+      finalp2[i].p_casa  = &finalp2[i+1];
+    }
+    else if (i == 2)
+    {
       finalp2[i].finalVetor = 1;
+      finalp2[i].p_casa = NULL;
     }
     else
     {
       finalp2[i].rosa = 0;
       finalp2[i].finalVetor = 0;
+      finalp2[i].p_casa  = &finalp2[i+1];
     }
-    finalp2[i].p_casa  = NULL;
     finalp2[i].p1_casa = NULL;
     finalp2[i].p2_casa = NULL;
   }
@@ -357,16 +410,29 @@ void init_caminhos()
     meio[i].cordenada_x = 4;
     meio[i].cordenada_y = 2 + 5*i;
     meio[i].peca = 0;
+    if (i > 5)
+    {
+      meio[i].disAtePonto = 10 - i;
+    }
+    else
+    {
+      meio[i].disAtePonto = 0;
+    }
 
     if(i == 3)
     {
       meio[i].rosa = 1;
+      meio[i].finalVetor = 0;
+      meio[i].p_casa  = &meio[i+1];
+      meio[i].p1_casa = NULL;
+      meio[i].p2_casa = NULL;
     }
 
-    if(i == 7)
+    else if(i == 7)
     {
       meio[i].rosa = 0;
       meio[i].finalVetor = 1;
+      meio[i].p_casa  = NULL;
       meio[i].p1_casa = finalp1;
       meio[i].p2_casa = finalp2;
     }
@@ -375,41 +441,45 @@ void init_caminhos()
     {
       meio[i].rosa = 0;
       meio[i].finalVetor = 0;
+      meio[i].p_casa  = &meio[i+1];
       meio[i].p1_casa = NULL;
       meio[i].p2_casa = NULL;
     }
-    meio[i].p_casa  = NULL;
   }
 }
 
 void desenhar_peca(int id_peca,int x, int y){
-    if(id_peca>0){
+    if(id_peca>0)
+    {
       tabuleiro[x][y]=id_peca;
       tabuleiro[x+1][y]=jogador1[0];
       tabuleiro[x][y+1]=jogador1[0];
       tabuleiro[x+1][y+1]=jogador1[0];
     }
-    else{
+    else
+    {
       tabuleiro[x][y]=fabs(id_peca);
       tabuleiro[x+1][y]=jogador2[0];
       tabuleiro[x][y+1]=jogador2[0];
       tabuleiro[x+1][y+1]=jogador2[0];
-  }
+    }
 }
 
 void desenhar_sempeca(int x,int y){
-   if(ROSA_1||ROSA_2||ROSA_3||ROSA_4||ROSA_5){
-     tabuleiro[x][y]="\\";
-     tabuleiro[x+1][y]="/";
-     tabuleiro[x][y+1]="/";
-     tabuleiro[x+1][y+1]="\\";
+   if(ROSA_1||ROSA_2||ROSA_3||ROSA_4||ROSA_5)
+   {
+     tabuleiro[x][y]    = '\\';
+     tabuleiro[x+1][y]  =  '/';
+     tabuleiro[x][y+1]  =  '/';
+     tabuleiro[x+1][y+1]= '\\';
    }
-   else{
-      tabuleiro[x][y]    = " ";
-      tabuleiro[x+1][y]  = " ";
-      tabuleiro[x][y+1]  = " ";
-      tabuleiro[x+1][y+1]= " ";
-    }
+   else
+   {
+      tabuleiro[x][y]    =' ';
+      tabuleiro[x+1][y]  =' ';
+      tabuleiro[x][y+1]  =' ';
+      tabuleiro[x+1][y+1]=' ';
+   }
 }
 
 int verifica_vitoria(){
@@ -439,39 +509,199 @@ void init(){
   init_caminhos();
 }
 
-int verificamov(int dado,int ply){
- int v[7]={0,0,0,0,0,0,0};
- int k;
- int j;
- if(ply==1){
-   for(int i=0;i<7;i++){
-     if(pecasP1[i].Pcasa!=NULL)
-       for(j=0;j<dado;i++) pecaP1[i].Pcasa.
-
-   }
-
- }
- else{
-
- }
-
- if(v[0]==0) printf("Nao ha movimentos possiveis");
-
-}
-
-int atualiza(int valorDado, peca* pecaMovida)
+int atualiza(int valorDado, peca* pecaMovida,int posic)
 {
+  int segundoDado,escolha,idrival,r;
+
+  if (valorDado == 0)
+  {
+    return(0);
+  }
+  if(pecaMovida[posic].Pcasa != NULL)
+  {
+    desenhar_sempeca(pecaMovida[posic].Pcasa->cordenada_x,pecaMovida[posic].Pcasa->cordenada_y);
+  }
   for (int i = 0; i < valorDado; i++)
   {
+    if(pecaMovida[posic].Pcasa == NULL)
+    {
+      pecaMovida[posic].Pcasa = inicialp1;
+    }
+    else
+    {
+      if(pecaMovida[posic].Pcasa->cordenada_x == meio[7].cordenada_x && pecaMovida[posic].Pcasa->cordenada_y == meio[7].cordenada_y)
+      {
+        if(pecaMovida[posic].id>0)
+        {
+          pecaMovida[posic].Pcasa = pecaMovida[posic].Pcasa->p1_casa;
+        }
+        else
+        {
+          pecaMovida[posic].Pcasa = pecaMovida[posic].Pcasa->p2_casa;
+        }
+      }
+      else
+      {
+        pecaMovida[posic].Pcasa = pecaMovida[posic].Pcasa->p_casa;
+      }
+    }
+  }
+  if(pecaMovida[posic].Pcasa->peca!=0){
+    idrival=pecaMovida[posic].Pcasa->peca;
+    if(idrival>0){
+      while(idrival!=pecasP1[r].id) r++;
+      pecasP1[r].Pcasa=NULL;
+    }
+    else{
+      while(idrival!=pecasP2[r].id) r++;
+      pecasP2[r].Pcasa=NULL;
+    }
 
   }
+  pecaMovida[posic].Pcasa->peca = pecaMovida[posic].id;
+  desenhar_peca(pecaMovida[posic].id,pecaMovida[posic].Pcasa->cordenada_x,pecaMovida[posic].Pcasa->cordenada_y);
+  if(pecaMovida[posic].Pcasa->rosa==1){
+    segundoDado=dados();
+    escolha=verificamov(segundoDado,pecaMovida);
+    if(escolha!=0){
+      atualiza(segundoDado, pecasP2,escolha);
+    }
+
+  }
+  return(0);
+}
+
+int verificamov(int valorDado, peca* pecasJogador, int jogador)
+{
+  int pecasValidas[7];
+  int cont=0,k=0,escolha;
+  int j = 0; //contador
+  casa* auxCasa = NULL;
+  for (int i = 0; i < 7; i++)
+  {
+    pecasValidas[i] = 1;
+
+    if(pecasJogador[i].pontuada == 1)
+    {
+      pecasValidas[i] = 0;
+      continue;
+    }
+
+    if(pecasJogador[i].Pcasa == NULL)
+    {
+      j++;
+      if(jogador == 1)
+      {
+        auxCasa = inicialp1;
+      }
+      else
+      {
+        auxCasa = inicialp2;
+      }
+      goto jump;
+    }
+
+    if(pecasJogador[i].Pcasa->disAtePonto != 0 && pecasJogador[i].Pcasa->disAtePonto != valorDado)
+    {
+      pecasValidas[i] = 0;
+      continue;
+    }
+
+    auxCasa = pecasJogador[i].Pcasa;
+
+    for (j; j < valorDado; j++)
+    {
+      if(pecasJogador[i].Pcasa->cordenada_x == meio[7].cordenada_x && pecasJogador[i].Pcasa->cordenada_y == meio[7].cordenada_y)
+      {
+        if(jogador == 1)
+        {
+          auxCasa = auxCasa->p1_casa;
+        }
+        else
+        {
+          auxCasa = auxCasa->p2_casa;
+        }
+      }
+      else
+      {
+        auxCasa = auxCasa->p_casa;
+      }
+    }
+    jump:
+    if(jogador == 1)
+    {
+      if(auxCasa->peca > 0)
+      {
+        pecasValidas[i] = 0;
+        continue;
+      }
+    }
+    else
+    {
+      if(auxCasa->peca < 0)
+      {
+        pecasValidas[i] = 0;
+        continue;
+      }
+    }
+  }
+  printf("Movimentos validos: ");
+  while(k!=7){
+    if(pecasValidas[k]!=0)
+      cont++;
+    k++;
+  }
+  if(cont==0){
+    printf("Nao existe movimentos validos");
+    return 0;
+  }
+  else{
+   k=0;
+   while(k!=7){
+     if(pecasValidas[k]!=0)
+       printf("%d ", pecasValidas[k]);
+     k++;
+   }
+   while(1){
+      k=0;
+
+      printf("\nQual sera seu movimento? ");
+      scanf("%d",&escolha);
+      while(k!=7){
+        if(escolha==pecasValidas[k]){
+          return escolha;
+        }
+        k++;
+      }
+      printf("Movimento invalido");
+   }
+  }
+}
+int instrucao()
+{
+  printf("Para jogar o Jogo Real de Ur são necessários 2 jogadores:\n\n");
+  printf("Cada Jogador possui 7 peças que devem percorrer o caminho inteiro do tabuleiro ");
+  printf("e quem o fizer primeiro ganha.\n\n");
+  printf("Cada turno é composto de duas ações: \n\n");
+  printf("1- O jogador rola 4 dados que possuim valor 1 e 0, a soma dos dados é o numero de movimentos que ele faz.\n");
+  printf("2- O jogador escolhe mover uma peça que esta no tabuleiro ou coloca uma peça nova. ");
+  printf("Essa peça então se movera o numero de espaços que foi tirado no dado\n\n");
+  printf("Se a casa para a qual a peça se move esta ocupada por uma peça do adversário");
+  printf(" o adversario retira sua peça do tabuleiro sem pontuar.\n");
+  printf("Não é permitido mover uma peça sua para uma casa já ocupada por você.\n\n");
+  printf("Se uma peça cai numa casa marcada por um X vermelho o jogador ganha outro movimento e essa peça fica imune ate sair da casa.\n\n");
+  printf("Para pontuar é necessário movimentar uma peça exatamente uma casa a mais do que o fim do tabuleiro\n\n");
+  printf("Pressione ENTER key para continuar\n");
+  getchar();
+  getchar();
+  return 0;
 }
 /*
 +----+----+----+----+         +----+----+
 | \/ |    |    |    |         |    | \/ |
 | /\ |    |    |    |  1P     |    | /\ |
 +------------------------+--------------+
-|    |    |    | \/ |    |    |    |    |
+|    |    |    | \/ |    |    |    |    |atom://teletype/portal/5d0389b5-c486-490f-99e2-6a19e9a63735
 |    |    |    | /\ |    |    |    |    |
 +------------------------+--------------+
 | \/ |    |    |    |  2P     |    | \/ |
