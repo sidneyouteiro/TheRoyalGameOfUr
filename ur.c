@@ -72,6 +72,7 @@ void init(); //att
 int verifica_vitoria();//att
 void tela_vitoria(int ply);//att
 int loading(unsigned int milliseconds);
+void atualiza(int valorDado, peca* pecaMovida);
 
 int main()
 {
@@ -438,10 +439,11 @@ void init(){
   init_caminhos();
 }
 
-/*int verificamov(int dado,int ply){
+int verificamov(int dado,int ply){
  int v[7]={0,0,0,0,0,0,0};
  int k;
  int j;
+
  if(ply==1){
    for(int i=0;i<7;i++){
      if(pecasP1[i].Pcasa!=NULL)
@@ -458,12 +460,13 @@ void init(){
 
 }
 
-int atualiza(int valorDado, peca* pecaMovida)
+void atualiza(int valorDado, peca* pecaMovida)
 {
   for (int i = 0; i < valorDado; i++)
   {
-
+   pecaMovida.Pcasa=pecaMovida.Pcasa.p_casa;
   }
+  desenhar_peca(pecaMovida.id,pecaMovida.Pcasa.cordenada_x,pecaMovida.Pcasa.cordenada_y);
 }
 /*
 +----+----+----+----+         +----+----+
