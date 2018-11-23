@@ -9,8 +9,8 @@
 #define ROSA_1 (x < 6 && y < 4)
 #define ROSA_2 (x < 6 && y > 5)
 #define ROSA_3 ((x > 14 && x < 21) && (y > 2 && y < 7))
-#define ROSA_4 ((x > 28 && x < 31) && y < 4)
-#define ROSA_5 ((x > 28 && x < 31) && y > 5)
+#define ROSA_4 ((x > 29 && x < 36) && y < 4)
+#define ROSA_5 ((x > 29 && x < 36) && y > 5)
 
 
 /* cores para uso no terminal*/
