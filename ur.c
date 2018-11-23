@@ -139,6 +139,19 @@ void historia(){
   getchar();
 }
 
+void historia(){
+  system("clear");
+  printf("\nThe Royal Game of Ur ou Game of Ur, foi popular em todo o Oriente Médio no terceiro milênio A.C e tabuleiros para ele");
+  printf(" foram encontrados no Irã, Síria, Egito, Líbano, Sri Lanka, Chipre e Creta. Jogo de Ur eventualmente adquiriu significado\n");
+  printf(" supersticioso fornecendo previsões vagas para o futuro dos jogadores se eles pousarem em certas casas do tabuleiro,");
+  printf(" como \nVocê encontrará um amigo\n ou \nVocê se tornará poderoso como um leão.\n\nO jogo possui esse nome devido ao seu redescobrimento");
+  printf(" em uma das escavações do arqueologo Sir Leonard Woolley no cemiterio real de ur. Entretanto mais tarde arqueologos descobririam copias do jogo em varias localidade do Oriente Medio.\n");
+  printf(" E as regras só foram redescobertas em 1980, pelo historiador Irving Finkel através de placa de barro escritas por um escriba babiloniano\n");
+  printf("Pressione ENTER key para continuar\n");
+  getchar();
+  getchar();
+}
+
 
 void init_tabuleiro(){
   FILE* tabuleiro_a; /* arquivo que guarda o tabuleiro*/
@@ -191,7 +204,6 @@ void jogar(){
       tela_vitoria(vencedor);
       break;
     }
-
   }
 }
 
@@ -355,6 +367,7 @@ void init_caminhos()
     finalp1[i].cordenada_y = 37-5*i;
     finalp1[i].peca = 0;
     finalp1[i].disAtePonto = 2 - i;
+
     if(i == 1)
     {
       finalp1[i].rosa = 1;
@@ -383,6 +396,7 @@ void init_caminhos()
     finalp2[i].cordenada_y = 37-5*i;
     finalp1[i].peca = 0;
     finalp1[i].disAtePonto = 2 - i;
+
     if(i == 1)
     {
       finalp2[i].rosa = 1;
