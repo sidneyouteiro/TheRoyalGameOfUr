@@ -281,7 +281,7 @@ void init_caminhos()
     {
       inicialp1[i].rosa = 0;
       inicialp1[i].finalVetor = 0;
-      inicialp1[i].p_casa = NULL;
+      inicialp1[i].p_casa = &inicialp1[i+1];
     }
     inicialp1[i].p1_casa = NULL;
     inicialp1[i].p2_casa = NULL;
@@ -303,7 +303,7 @@ void init_caminhos()
     {
       inicialp2[i].rosa = 0;
       inicialp2[i].finalVetor = 0;
-      inicialp2[i].p_casa = NULL;
+      inicialp2[i].p_casa = &inicialp2[i+1];
     }
     inicialp2[i].p1_casa = NULL;
     inicialp2[i].p2_casa = NULL;
@@ -315,17 +315,23 @@ void init_caminhos()
     finalp1[i].cordenada_x = 1;
     finalp1[i].cordenada_y = 37-5*i;
     finalp1[i].peca = 0;
-    if(i == 2)
+    if(i == 1)
     {
       finalp1[i].rosa = 1;
+      finalp1[i].finalVetor = 0;
+      finalp1[i].p_casa  = &finalp1[i+1];
+    }
+    else if (i == 2)
+    {
       finalp1[i].finalVetor = 1;
+      finalp1[i].p_casa = NULL
     }
     else
     {
       finalp1[i].rosa = 0;
       finalp1[i].finalVetor = 0;
+      finalp1[i].p_casa  = &finalp1[i+1];
     }
-    finalp1[i].p_casa  = NULL;
     finalp1[i].p1_casa = NULL;
     finalp1[i].p2_casa = NULL;
   }
@@ -335,18 +341,24 @@ void init_caminhos()
   {
     finalp2[i].cordenada_x = 7;
     finalp2[i].cordenada_y = 37-5*i;
-    finalp2[i].peca = 0;
-    if(i == 2)
+    finalp1[i].peca = 0;
+    if(i == 1)
     {
       finalp2[i].rosa = 1;
+      finalp2[i].finalVetor = 0;
+      finalp2[i].p_casa  = &finalp2[i+1];
+    }
+    else if (i == 2)
+    {
       finalp2[i].finalVetor = 1;
+      finalp2[i].p_casa = NULL
     }
     else
     {
       finalp2[i].rosa = 0;
       finalp2[i].finalVetor = 0;
+      finalp2[i].p_casa  = &finalp2[i+1];
     }
-    finalp2[i].p_casa  = NULL;
     finalp2[i].p1_casa = NULL;
     finalp2[i].p2_casa = NULL;
   }
@@ -361,12 +373,17 @@ void init_caminhos()
     if(i == 3)
     {
       meio[i].rosa = 1;
+      meio[i].finalVetor = 0;
+      meio[i].p_casa  = meio[i+1];
+      meio[i].p1_casa = NULL;
+      meio[i].p2_casa = NULL;
     }
 
-    if(i == 7)
+    else if(i == 7)
     {
       meio[i].rosa = 0;
       meio[i].finalVetor = 1;
+      meio[i].p_casa  = NULL;
       meio[i].p1_casa = finalp1;
       meio[i].p2_casa = finalp2;
     }
@@ -375,10 +392,10 @@ void init_caminhos()
     {
       meio[i].rosa = 0;
       meio[i].finalVetor = 0;
+      meio[i].p_casa  = meio[i+1];
       meio[i].p1_casa = NULL;
       meio[i].p2_casa = NULL;
     }
-    meio[i].p_casa  = NULL;
   }
 }
 
