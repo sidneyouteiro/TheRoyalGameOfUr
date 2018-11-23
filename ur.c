@@ -82,6 +82,7 @@ int main()
    scanf("%d",&menu);
    switch (menu) {
      case 1:jogar();
+
             break;
      case 2:return 0;
      default:printf("Escolha uma das opçoes, por favor");
@@ -131,30 +132,48 @@ void init_tabuleiro(){
 
 void jogar(){
   srandom(time(NULL));
+  // variáveis de tempo
+  time_t t_inicio, t_fim;
+  int t_decorrido;
+
   int totdado,vencedor;
   char escolha;
+  // inicio do contador de tempo
+  time(&t_inicio);
+
   init();
   while (1)
-  {
+  {//
     //draw()->dado();->vericar movimentos possiveis->input do jogador->
     //->atualizar tabuleiro
 
     draw();//turno do jogador 1
     totdado=dados();
     //verifica
-    peca* pecaMovida = &pecasP1[n];
-    atualiza(totdado, pecaMovida);
+  //  peca* pecaMovida = &pecasP1[n];
+    //atualiza(totdado, pecaMovida);
 
     if(vencedor=verifica_vitoria()) tela_vitoria(vencedor);
     draw();//turno do jogador 2
     totdado=dados();
     //verifica
-    peca* pecaMovida = &pecasP1[n];
-    atualiza(totdado, pecaMovida);
+    //peca* pecaMovida = &pecasP1[n];
+    //atualiza(totdado, pecaMovida);
 
-    if(vencedor=verifica_vitoria()) tela_vitoria(vencedor);
+    if(vencedor=verifica_vitoria()) {
+    tela_vitoria(vencedor);
+    time(&t_fim);
+    tDecorrido = (int) difftime(t_fim, t_inicio);
+
+    t_sec = tDecorrido % 60;
+    t_min = tDecorrido / 60;
+
+    printf ("o tempo decorrido desde o início do jogo foi %d min e %d seg.", t_min, t_sec)
+
+  }
 
       }
+
 }
 
 
@@ -438,7 +457,7 @@ void init(){
   init_peca();
   init_caminhos();
 }
-
+/*
 int verificamov(int dado,int ply){
  int v[7]={0,0,0,0,0,0,0};
  int k;
