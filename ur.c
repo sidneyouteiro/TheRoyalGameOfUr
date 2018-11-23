@@ -9,8 +9,8 @@
 #define ROSA_1 (x < 6 && y < 4)
 #define ROSA_2 (x < 6 && y > 5)
 #define ROSA_3 ((x > 14 && x < 21) && (y > 2 && y < 7))
-#define ROSA_4 (x > 28 && x < 31) && y < 4)
-#define ROSA_5 (x > 28 && x < 31) && y > 5)
+#define ROSA_4 ((x > 28 && x < 31) && y < 4)
+#define ROSA_5 ((x > 28 && x < 31) && y > 5)
 
 
 /* cores para uso no terminal*/
@@ -82,7 +82,6 @@ int main()
    scanf("%d",&menu);
    switch (menu) {
      case 1:jogar();
-
             break;
      case 2:return 0;
      default:printf("Escolha uma das opçoes, por favor");
@@ -132,25 +131,18 @@ void init_tabuleiro(){
 
 void jogar(){
   srandom(time(NULL));
-  // variáveis de tempo
-  time_t t_inicio, t_fim;
-  int t_decorrido;
-
   int totdado,vencedor;
   char escolha;
-  // inicio do contador de tempo
-  time(&t_inicio);
-
   init();
   while (1)
-  {//
+  {
     //draw()->dado();->vericar movimentos possiveis->input do jogador->
     //->atualizar tabuleiro
 
     draw();//turno do jogador 1
     totdado=dados();
     //verifica
-  //  peca* pecaMovida = &pecasP1[n];
+    //peca* pecaMovida = &pecasP1[n];
     //atualiza(totdado, pecaMovida);
 
     if(vencedor=verifica_vitoria()) tela_vitoria(vencedor);
@@ -160,22 +152,10 @@ void jogar(){
     //peca* pecaMovida = &pecasP1[n];
     //atualiza(totdado, pecaMovida);
 
-    if(vencedor=verifica_vitoria()) {
-    tela_vitoria(vencedor);
-    time(&t_fim);
-    tDecorrido = (int) difftime(t_fim, t_inicio);
-
-    t_sec = tDecorrido % 60;
-    t_min = tDecorrido / 60;
-
-    printf ("o tempo decorrido desde o início do jogo foi %d min e %d seg.", t_min, t_sec)
-
-  }
+    if(vencedor=verifica_vitoria()) tela_vitoria(vencedor);
 
       }
-
 }
-
 
 void init_jogador(){
   printf("Nome do jogador 1:\n");
@@ -457,19 +437,19 @@ void init(){
   init_peca();
   init_caminhos();
 }
-/*
-int verificamov(int dado,int ply){
+
+/*int verificamov(int dado,int ply){
  int v[7]={0,0,0,0,0,0,0};
  int k;
  int j;
  if(ply==1){
    for(int i=0;i<7;i++){
      if(pecasP1[i].Pcasa!=NULL)
-       for(j=0;j<dado;i++) pecaP1[i].Pcasa.
+       for(j=0;j<dado;i++) pecasP1[i].Pcasa.
 
    }
-
- }
+}
+}
  else{
 
  }
