@@ -6,13 +6,11 @@
 /*-------------------Macros*/
 #define TX 43 /*Tamanho do tabuleiro horizontal*/
 #define TY 10 /*Tamanho do tabuleiro vertical*/
-#define ROSA_1 ((x > 0  && x < 6 ) && (y > 0 && y < 3))
-#define ROSA_2 ((x > 0  && x < 6 ) && (y > 6 && y < 9))
+#define ROSA_1 ((x > 1  && x < 5 ) && (y > 0 && y < 3))
+#define ROSA_2 ((x > 1  && x < 5 ) && (y > 6 && y < 9))
 #define ROSA_3 ((x > 15 && x < 20) && (y > 3 && y < 6))
-#define ROSA_4 ((x > 29 && x < 36) && (y > 0 && y < 3))
-#define ROSA_5 ((x > 29 && x < 36) && (y > 6 && y < 9))
-#define FIMMEIOX meio[7].cordenada_x
-#define FIMMEIOY meio[7].cordenada_y
+#define ROSA_4 ((x > 30 && x < 35) && (y > 0 && y < 3))
+#define ROSA_5 ((x > 30 && x < 35) && (y > 6 && y < 9))
 
 
 /* cores para uso no terminal*/
@@ -75,19 +73,21 @@ int verifica_vitoria();//att
 void tela_vitoria(int ply);//att
 int loading(unsigned int milliseconds);
 int atualiza(int valorDado, peca* pecaMovida);
+void historia();
+int instrucao();
 
 int main()
 {
   int menu;
   while(1){
    system("clear");
-   printf("\n1-Jogar\n2-Regras\n3-historia\n4-Sair\n");
+   printf("\n1-Jogarr\n2-Regras\n3-historia\n4-Sair\n");
    scanf("%d",&menu);
    switch (menu) {
      case 1: jogar();
              break;
-     case 2:instrucao();
-            break;
+     case 2: instrucao();
+             break;
      case 3: historia();
              break;
      case 4: return 0;
@@ -118,12 +118,16 @@ void draw(){
 }
 
 void historia(){
- char v[1000]={""};
-
-
-
-
-
+  system("clear");
+  printf("\nThe Royal Game of Ur ou Game of Ur, foi popular em todo o Oriente Médio no terceiro milênio A.C e tabuleiros para ele");
+  printf(" foram encontrados no Irã, Síria, Egito, Líbano, Sri Lanka, Chipre e Creta. Jogo de Ur eventualmente adquiriu significado\n");
+  printf(" supersticioso fornecendo previsões vagas para o futuro dos jogadores se eles pousarem em certas casas do tabuleiro,");
+  printf(" como \nVocê encontrará um amigo\n ou \nVocê se tornará poderoso como um leão.\n\nO jogo possui esse nome devido ao seu redescobrimento");
+  printf(" em uma das escavações do arqueologo Sir Leonard Woolley no cemiterio real de ur. Entretanto mais tarde arqueologos descobririam copias do jogo em varias localidade do Oriente Medio.\n");
+  printf(" E as regras só foram redescobertas em 1980, pelo historiador Irving Finkel através de placa de barro escritas por um escriba babiloniano\n");
+  printf("Pressione ENTER key para continuar\n");
+  getchar();
+  getchar();
 }
 
 
@@ -149,7 +153,7 @@ void init_tabuleiro(){
 void jogar(){
   srandom(time(NULL));
   int totdado,vencedor;
-  char escolha;
+  int escolha;
   peca* pecaMovida = NULL;
   init();
   while (1)
@@ -159,19 +163,13 @@ void jogar(){
 
     draw();//turno do jogador 1
     totdado=dados();
-    scanf("%c", pecaMovida);
-    pecaMovida = &pecasP1[1];
-    atualiza(totdado, pecasP1);
-    //verifica
-    //peca* pecaMovida = &pecasP1[n];
-    //atualiza(totdado, pecaMovida);
-
+    escolha=verifica(totdado,pecasP1);
+    atualiza(totdado, pecasP1,escolha);
     if(vencedor=verifica_vitoria()) tela_vitoria(vencedor);
     draw();//turno do jogador 2
     totdado=dados();
-    //verifica
-    //peca* pecaMovida = &pecasP1[n];
-    //atualiza(totdado, pecaMovida);
+    escolha=verifica(totdado,pecasP1);
+    atualiza(totdado, pecasP2,escolha);
 
     if(vencedor=verifica_vitoria()) tela_vitoria(vencedor);
 
@@ -480,109 +478,58 @@ void init(){
   init_caminhos();
 }
 
-/*
-int verificamov(int dado,int ply){
- int v[7]={0,0,0,0,0,0,0};
- int k;
- int j;
-
- if(ply==1){
-   for(int i=0;i<7;i++){
-     if(pecasP1[i].Pcasa!=NULL)
-       for(j=0;j<dado;i++) pecasP1[i].Pcasa.
-
-   }
-}
-}
- else{
-
- }
-
- if(v[0]==0) printf("Nao ha movimentos possiveis");
-
-}
-*/
-int atualiza(int valorDado, peca* pecaMovida)
+int atualiza(int valorDado, peca* pecaMovida,int posic)
 {
   if (valorDado == 0)
   {
     return(0);
   }
-  if(pecaMovida[1].Pcasa != NULL)
+  if(pecaMovida[posic].Pcasa != NULL)
   {
-    desenhar_sempeca(pecaMovida[1].Pcasa->cordenada_x,pecaMovida[1].Pcasa->cordenada_y);
+    desenhar_sempeca(pecaMovida[posic].Pcasa->cordenada_x,pecaMovida[posic].Pcasa->cordenada_y);
   }
   for (int i = 0; i < valorDado; i++)
   {
-    if(pecaMovida[1].Pcasa == NULL)
+    if(pecaMovida[posic].Pcasa == NULL)
     {
-      pecaMovida[1].Pcasa = inicialp1;
+      pecaMovida[posic].Pcasa = inicialp1;
     }
     else
     {
-      if(pecaMovida[1].Pcasa->cordenada_x==FIMMEIOX && pecaMovida[1].Pcasa->cordenada_y==FIMMEIOY)
+      if(pecaMovida[posic].Pcasa->cordenada_x == meio[7].cordenada_x && pecaMovida[posic].Pcasa->cordenada_y == meio[7].cordenada_y)
       {
-        if(pecaMovida[1].id>0)
+        if(pecaMovida[posic].id>0)
         {
-          pecaMovida[1].Pcasa = pecaMovida[1].Pcasa->p1_casa;
+          pecaMovida[posic].Pcasa = pecaMovida[posic].Pcasa->p1_casa;
         }
         else
         {
-          pecaMovida[1].Pcasa = pecaMovida[1].Pcasa->p2_casa;
+          pecaMovida[posic].Pcasa = pecaMovida[posic].Pcasa->p2_casa;
         }
       }
       else
       {
-        pecaMovida[1].Pcasa = pecaMovida[1].Pcasa->p_casa;
+        pecaMovida[posic].Pcasa = pecaMovida[posic].Pcasa->p_casa;
       }
     }
   }
-  pecaMovida[1].Pcasa->peca = pecaMovida[1].id;
-  desenhar_peca(pecaMovida[1].id,pecaMovida[1].Pcasa->cordenada_x,pecaMovida[1].Pcasa->cordenada_y);
+  pecaMovida[posic].Pcasa->peca = pecaMovida[posic].id;
+  desenhar_peca(pecaMovida[posic].id,pecaMovida[posic].Pcasa->cordenada_x,pecaMovida[posic].Pcasa->cordenada_y);
   return(0);
 }
 
-int verificamov(int valorDado,peca* jog)
+int verificamov(int valorDado, peca* pecasJogador)
 {
-   int v[7]={0};
-   int k=0;
-   if(jog[0].id>0){
-     for(int i=0;i<7;i++){
-       if(jog[i].Pcasa!=NULL){
-         if(verificamov_aux(valorDado,jog[i])){
-           v[k]=fabs(jog[i].id);
-           k++;
-         }
-       }
-
-     }
-   }
-   for(int i=0;i<valorDado;i++){
-     if(jog[0].id>0){
-       inicial[]
-     }
-     else{
-
-     }
-   }
-}
-
-
-int verificamov_aux(int valorDado,peca pc){
-  for(int i=0;i<valorDado;i++){
-     pc.Pcasa=pc.Pcasa->p_casa;
-
-
+  int pecasValidas[7];
+  for (int i = 0; i < 7; i++)
+  {
+    pecasValidas[i] = 0;
+    if
   }
 
-
-
 }
-
-
 int instrucao()
 {
-  int wait;
   printf("Para jogar o Jogo Real de Ur são necessários 2 jogadores:\n\n");
   printf("Cada Jogador possui 7 peças que devem percorrer o caminho inteiro do tabuleiro ");
   printf("e quem o fizer primeiro ganha.\n\n");
@@ -595,14 +542,17 @@ int instrucao()
   printf("Não é permitido mover uma peça sua para uma casa já ocupada por você.\n\n");
   printf("Se uma peça cai numa casa marcada por um X vermelho o jogador ganha outro movimento e essa peça fica imune ate sair da casa.\n\n");
   printf("Para pontuar é necessário movimentar uma peça exatamente uma casa a mais do que o fim do tabuleiro\n\n");
-  scanf("%d", &wait);
+  printf("Pressione ENTER key para continuar\n");
+  getchar();
+  getchar();
+  return 0;
 }
 /*
 +----+----+----+----+         +----+----+
 | \/ |    |    |    |         |    | \/ |
 | /\ |    |    |    |  1P     |    | /\ |
 +------------------------+--------------+
-|    |    |    | \/ |    |    |    |    |
+|    |    |    | \/ |    |    |    |    |atom://teletype/portal/5d0389b5-c486-490f-99e2-6a19e9a63735
 |    |    |    | /\ |    |    |    |    |
 +------------------------+--------------+
 | \/ |    |    |    |  2P     |    | \/ |
