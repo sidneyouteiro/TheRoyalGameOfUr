@@ -25,45 +25,58 @@
 
 char tabuleiro[TY][TX]; /* array que guarda o tabuleiro*/
 /*v vazio,r rival, id da peca*/
-char caminho_p1[16]; /* vetor do caminho proprio do jogador 1*/
-char caminho_p2[16]; /* vetor do caminho proprio do jogador 2*/
+/*char caminho_p1[16];  vetor do caminho proprio do jogador 1
+char caminho_p2[16];  vetor do caminho proprio do jogador 2*/
 
-
-typedef struct _jog{
-  char nome[21];
-  int pecas_ganhas; /*elemento usado pra checar a condicao de vitoria*/
-}player;
-
-typedef struct _pec{
-  int imunidade; /* 0 pode ser tomada, 1 nao pode ser tomada*/
-  char id; /* jogador 1 tem pecas com id impar, jogador 2 par*/
-  int no_jogo; /* mostra se a peca esta ou nao no tabuleiro. 1 esta, 0 nao esta, 10 chegada*/
+typedef struct _pec
+{
+  int id; /*numero de peças*/
+  int pontuada;
+  casa* Pcasa;
 }peca;
 
 typedef struct _cas{
-  int id;
+  int cordenada_x;
+  int cordenada_y;
+  int peca; // 0 = vazia, positivo p1, negativo p2
+  int rosa; // 0 = nao é rosa, 1 = rosa
+  int finalVetor;
   struct casa *p_casa;
   struct casa *p1_casa;
   struct casa *p2_casa;
 }casa;
+char jogador1[21];
+char jogador2[21];
+
+peca pecasP1[7];
+peca pecasP2[7];
+
+casa inicialp1[4];
+casa inicialp2[4];
+
+casa meio[8];
+
+casa finalp1[2];
+casa finalp2[2];
 
 void draw();
 void init_tabuleiro();
 int delay(unsigned int milliseconds);
 int dados();
 void jogar();
-void init_jogador(player* play1,player* play2);/*pega as informacoes dos jogadores*/
-void init_peca(peca* p1,peca* p2); /*inicializa as pecas de cada jogador*/
-void init_caminhos();
-void desenhar_peca(player* ply,char id_peca,int posic,int jogador);
-char verificamov(int dado,peca* jg);
+void init_jogador(); //att
+void init_peca(); //att
+void init_caminhos();//att
+void desenhar_peca(char id_peca,int x, int y);//att
+char verificamov(int dado);
 int validamov(int i, int dice,int p);
-void movp1(char mov,peca* jg1,int dice,player* ply1);
-void movp2(char mov,peca* jg2,int dice,player* ply2);
+void movp1(char mov,int dice);
+void movp2(char mov,int dice);
 void desenhar_sempeca(int posic,int ply);
+void init();
 
-void pecachegada(char id, peca* jg);
-void tela_vitoria(player* jg);
+void pecachegada(char id);
+void tela_vitoria();
 
 int main()
 {
@@ -123,22 +136,15 @@ void init_tabuleiro(){
 
 void jogar(){
   srandom(time(NULL));
-  player* jogador1 = (player*) malloc(sizeof(player));
-  player* jogador2 = (player*) malloc(sizeof(player));
-  peca jg1[7];
-  peca jg2[7];
   int totdado;
   char escolha;
-  init_jogador(jogador1,jogador2);
-  init_peca(jg1,jg2);
-  init_tabuleiro();
-  init_caminhos();
+  init();
   while (1)
   {
     draw();//turno do jogador 1
     totdado=dados();
     escolha=verificamov(totdado,jg1);
-    if(escolha!='n') movp1(escolha,jg1,totdado,jogador1);
+    if(escolha!='n') movp1(escolha,jg1,totdado);
     else delay(5000);
     if(VITORIA){
        tela_vitoria(jogador1);
@@ -146,13 +152,10 @@ void jogar(){
     draw();//turno do jogador 2
     totdado=dados();
     escolha=verificamov(totdado,jg2);
-    if(escolha!='n'){
-      movp2(escolha,jg2,totdado,jogador2);
-    }
-    else
-      delay(5000);
+    if(escolha!='n') movp2(escolha,jg2,totdado);
+    else delay(5000);
     if(VITORIA){
-      tela_vitoria(jogador2);
+      tela_vitoria();
       break;
 }
   }
@@ -160,30 +163,28 @@ void jogar(){
   free(jogador2);
 }
 
-void init_jogador(player* play1,player* play2){
+void init_jogador(){
   printf("Nome do jogador 1:\n");
-  scanf("%s", &play1->nome);
+  scanf("%s", jogador1);
   printf("Nome do jogador 2:\n");
-  scanf("%s", &play2->nome);
-  (play1->pecas_ganhas) = 0;
-  (play2->pecas_ganhas) = 0;
+  scanf("%s", jogador2);
   }
 
-void init_peca(peca* p1,peca* p2){
+void init_peca(){
   int i,id1,id2;
   id1=1;
-  id2=0;
+  id2=-1;
   for(i=0;i<7;i++){
-    (p1[i].imunidade)=0;
-    (p1[i].no_jogo)=0;
-    (p1[i].id)=id1+'0'; //somar '0' transforma um inteiro em char
-    id1+=2;
+    (pecasP1[i].Pcasa)=NULL;
+    (pecasP1[i].pontuada)=0;
+    (pecasP1[i].id)=id1+'0'; //somar '0' transforma um inteiro em char
+    id1++;
   }
   for(i=0;i<7;i++){
-    (p2[i].imunidade)=0;
-    (p2[i].no_jogo)=0;
-    (p2[i].id)=id2+'0';
-    id2+=2;
+    (pecasP2[i].Pcasa)=NULL;
+    (pecasP2[i].no_jogo)=0;
+    (pecasP2[i].id)=id2+'0';
+    id2--;
   }
 }
 
@@ -227,71 +228,88 @@ int delay(unsigned int milliseconds)
 
 void init_caminhos()
 {
- int i;
-   for(i=0;i<8;i++){
-     caminho_p1[i]='v';
-     caminho_p2[i]='v';
-     }
-   }
-
-void desenhar_peca(player* ply,char id_peca,int posic,int jogador){
-  int x, y;
-  if(jogador==1){
-   if(posic<=4){
-     x=1;
-     y=17-posic*5;
-     tabuleiro[x][y]=id_peca;
-     tabuleiro[x+1][y]=(ply->nome[0]);
-     tabuleiro[x][y+1]=(ply->nome[0]);
-     tabuleiro[x+1][y+1]=(ply->nome[0]);
-   }//isafe
-   if(4<posic<=12){
-     x=4;
-     y=2+5*(posic-4);
-     tabuleiro[x][y]=id_peca;
-     tabuleiro[x+1][y]=(ply->nome[0]);
-     tabuleiro[x][y+1]=(ply->nome[0]);
-     tabuleiro[x+1][y+1]=(ply->nome[0]);
-   }//meio
-   if(12<posic){
-     x=1;
-     y=43-(posic-12)*5;
-     tabuleiro[x][y]=id_peca;
-     tabuleiro[x+1][y]=(ply->nome[0]);
-     tabuleiro[x][y+1]=(ply->nome[0]);
-     tabuleiro[x+1][y+1]=(ply->nome[0]);
-   }//fsafe
+  //inicia o caminho inicial p1
+  for (int i = 0; i < 4; i++)
+  {
+    inicialp1[i]->cordenada_x = 1;
+    inicialp1[i]->cordenada_y = 17-5*i;
+    inicialp1[i]->peca = 0;
+    if(i = 3)
+    {
+      inicialp1[i]->rosa = 1;
+      inicialp1[i]->finalVetor = 1;
+      inicialp1[i]->p_casa = meio;
+    }
+    else
+    {
+      inicialp1[i]->rosa = 0;
+      inicialp1[i]->finalVetor = 0;
+      inicialp1[i]->p_casa = NULL;
+    }
+    inicialp1[i]->p1_casa = NULL;
+    inicialp1[i]->p2_casa = NULL;
   }
-  else{
-    if(posic<=4){
-      x=7;
-      y=17-posic*5;
+
+  //inicia o caminho inicial p2
+  for (int i = 0; i < 4; i++)
+  {
+    inicialp2[i]->cordenada_x = 7;
+    inicialp2[i]->cordenada_y = 17-5*i;
+    inicialp2[i]->peca = 0;
+    if(i = 3)
+    {
+      inicialp2[i]->rosa = 1;
+      inicialp2[i]->finalVetor = 1;
+      inicialp2[i]->p_casa = meio;
+    }
+    else
+    {
+      inicialp2[i]->rosa = 0;
+      inicialp2[i]->finalVetor = 0;
+      inicialp2[i]->p_casa = NULL;
+    }
+    inicialp2[i]->p1_casa = NULL;
+    inicialp2[i]->p2_casa = NULL;
+  }
+/*
+
+int cordenada_x;
+int cordenada_y;
+int peca; // 0 = vazia, positivo p1, negativo p2
+int rosa; // 0 = nao é rosa, 1 = rosa
+int finalVetor;
+struct casa *p_casa;
+struct casa *p1_casa;
+struct casa *p2_casa;
+
+casa inicialp1[4];
+casa inicialp2[4];
+
+casa meio[8];
+
+casa finalp1[2];
+casa finalp2[2];
+*/
+
+}
+
+void desenhar_peca(char id_peca,int x, int y){
+    if(id_peca>0){
       tabuleiro[x][y]=id_peca;
-      tabuleiro[x+1][y]=(ply->nome[0]);
-      tabuleiro[x][y+1]=(ply->nome[0]);
-      tabuleiro[x+1][y+1]=(ply->nome[0]);
-    }//isafe
-    if(4<posic<=12){
-      x=4;
-      y=2+5*(posic-4);
+      tabuleiro[x+1][y]=jogador1[0];
+      tabuleiro[x][y+1]=jogador1[0];
+      tabuleiro[x+1][y+1]=jogador1[0];
+    }
+    else{
       tabuleiro[x][y]=id_peca;
-      tabuleiro[x+1][y]=(ply->nome[0]);
-      tabuleiro[x][y+1]=(ply->nome[0]);
-      tabuleiro[x+1][y+1]=(ply->nome[0]);
-    }//meio
-    if(12<posic){
-      x=7;
-      y=43-(posic-12)*5;
-      tabuleiro[x][y]=id_peca;
-      tabuleiro[x+1][y]=(ply->nome[0]);
-      tabuleiro[x][y+1]=(ply->nome[0]);
-      tabuleiro[x+1][y+1]=(ply->nome[0]);
-    }//fsafe
+      tabuleiro[x+1][y]=jogador2[0];
+      tabuleiro[x][y+1]=jogador2[0];
+      tabuleiro[x+1][y+1]=jogador2[0];
   }
 }
 
 char verificamov(int dado,peca* jg){
-  char peca_movivel[7]={'n','n','n','n','n','n','n'};
+  char peca_movivel[7]={"nnnnnnn"};
   char opcao;
   int k=0;
   int i;
@@ -306,7 +324,7 @@ char verificamov(int dado,peca* jg){
       }
 
     }
-    if(caminho_p1[0+dado-1]=='v' && peca_movivel[6]=='n'){
+    if(caminho_p1[dado]=='v' && peca_movivel[6]=='n'){
       printf(" (A)dicionar peca.");
       peca_movivel[6]='a';
       k++;
@@ -319,7 +337,7 @@ char verificamov(int dado,peca* jg){
            peca_movivel[k]=caminho_p2[i];
            k++;}
      }
-     if(caminho_p2[0+dado-1]=='v' && peca_movivel[6]=='n'){
+     if(caminho_p2[dado]=='v' && peca_movivel[6]=='n'){
        printf(" (A)dicionar peca.");
        peca_movivel[6]='a';
        k++;
@@ -404,24 +422,34 @@ void movp2(char mov,peca* jg2,int dice,player* ply2){
 
 void desenhar_sempeca(int posic,int ply){
  int x,y;
- if(ply==1){
-   if(posic==4){
+ if(ply==1)
+ {
+   if(posic==4)
+   {
      tabuleiro[1][2]="\\";
      tabuleiro[2][2]="/";
      tabuleiro[1][3]="/";
      tabuleiro[2][3]="\\";
    }
-   if(posic==13){
+
+   if(posic==13)
+   {
    tabuleiro[1][37]="\\";
    tabuleiro[2][37]="/";
    tabuleiro[1][38]="/";
-   tabuleiro[2][38]="\\";}
-   if(posic==8){
+   tabuleiro[2][38]="\\";
+   }
+
+   if(posic==8)
+   {
      tabuleiro[4][17]="\\";
      tabuleiro[5][17]="/";
      tabuleiro[4][18]="/";
      tabuleiro[5][18]="\\";
-   if(posic<4){
+   }
+
+   if(posic<4)
+   {
      x=1;
      y=17-posic*5;
      tabuleiro[x][y]=" ";
@@ -429,7 +457,9 @@ void desenhar_sempeca(int posic,int ply){
      tabuleiro[x][y+1]=" ";
      tabuleiro[x+1][y+1]=" ";
    }
-   if(4<posic<8){
+
+   if(4<posic<8)
+   {
      x=4;
      y=2+5*(posic-4);
      tabuleiro[x][y]=" ";
@@ -437,7 +467,9 @@ void desenhar_sempeca(int posic,int ply){
      tabuleiro[x][y+1]=" ";
      tabuleiro[x+1][y+1]=" ";
    }
-   if(8<posic<13){
+
+   if(8<posic<13)
+   {
      x=4;
      y=2+5*(posic-4);
      tabuleiro[x][y]=" ";
@@ -445,40 +477,54 @@ void desenhar_sempeca(int posic,int ply){
      tabuleiro[x][y+1]=" ";
      tabuleiro[x+1][y+1]=" ";
    }
-   if(posic==14){
+
+   if(posic==14)
+   {
      x=1;y=32;
      tabuleiro[x][y]=" ";
      tabuleiro[x+1][y]=" ";
      tabuleiro[x][y+1]=" ";
      tabuleiro[x+1][y+1]=" ";
    }
-   }}
-  else{
-    if(posic==4){
+  }
+  else
+  {
+    if(posic==4)
+    {
       tabuleiro[7][2]="\\";
       tabuleiro[8][2]="/";
       tabuleiro[7][3]="/";
       tabuleiro[8][3]="\\";
     }
-    if(posic==13){
-    tabuleiro[7][37]="\\";
-    tabuleiro[8][37]="/";
-    tabuleiro[7][38]="/";
-    tabuleiro[8][38]="\\";}
-    if(posic==8){
+
+    if(posic==13)
+    {
+      tabuleiro[7][37]="\\";
+      tabuleiro[8][37]="/";
+      tabuleiro[7][38]="/";
+      tabuleiro[8][38]="\\";
+    }
+
+    if(posic==8)
+    {
       tabuleiro[4][17]="\\";
       tabuleiro[5][17]="/";
       tabuleiro[4][18]="/";
       tabuleiro[5][18]="\\";
     }
-    if(posic<4){
+
+    if(posic<4)
+    {
       x=7;
       y=17-posic*5;
       tabuleiro[x][y]=" ";
       tabuleiro[x+1][y]=" ";
       tabuleiro[x][y+1]=" ";
       tabuleiro[x+1][y+1]=" ";
-    if(4<posic<8){
+    }
+
+    if(4<posic<8)
+    {
       x=4;
       y=2+5*(posic-4);
       tabuleiro[x][y]=" ";
@@ -486,7 +532,9 @@ void desenhar_sempeca(int posic,int ply){
       tabuleiro[x][y+1]=" ";
       tabuleiro[x+1][y+1]=" ";
     }
-    if(8<posic<13){
+
+    if(8<posic<13)
+    {
       x=4;
       y=2+5*(posic-4);
       tabuleiro[x][y]=" ";
@@ -494,31 +542,37 @@ void desenhar_sempeca(int posic,int ply){
       tabuleiro[x][y+1]=" ";
       tabuleiro[x+1][y+1]=" ";
     }
-    if(posic==14){
+
+    if(posic==14)
+    {
       x=7;y=32;
-      tabuleiro[x][y]=" ";
-      tabuleiro[x+1][y]=" ";
-      tabuleiro[x][y+1]=" ";
-      tabuleiro[x+1][y+1]=" ";
+      tabuleiro[x][y]    = " ";
+      tabuleiro[x+1][y]  = " ";
+      tabuleiro[x][y+1]  = " ";
+      tabuleiro[x+1][y+1]= " ";
     }
-
-
   }
-
-
  }
-}
 
-void pecachegada(char id, peca* jg){
+void pecachegada(char id, peca* jg)
+{
    int i=0;
-   while (jg[i].id!=id) i++;
+   while (jg[i].id != id) i++;
    jg[i].no_jogo=10;
 }
 
-void tela_vitoria(player* jg){
+void tela_vitoria(player* jg)
+{
   system("clear");
   printf("Parabens %s",jg->nome);
   delay(5000);
+}
+
+void init(){
+  void init_tabuleiro();
+  void init_jogador();
+  void init_peca();
+  void init_caminhos();
 }
 /*
 +----+----+----+----+         +----+----+
@@ -531,10 +585,9 @@ void tela_vitoria(player* jg){
 | \/ |    |    |    |  2P     |    | \/ |
 | /\ |    |    |    |         |    | /\ |
 +----+----+----+----+         +----+----+
-
+fileira superior  - l=1 , c=2+5k, //
 fileira do meio - l=4 e c=2+5*k, sendo k um inteiro nao negativo
-fileira superior esquerda - l=1 , c=2+5k, //
-fileira inferior esquerda - l=7 , //
+fileira inferior- l=7 , //
 
 coordenadas da rosa:
  superior esquerda = [1][2]
