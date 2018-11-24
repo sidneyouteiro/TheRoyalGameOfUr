@@ -59,24 +59,24 @@ casa meio[8];
 casa finalp1[3];
 casa finalp2[3];
 
-void draw();
-void init_tabuleiro();
-int delay(unsigned int milliseconds);
-int dados();
+void draw(); //funciona
+void init_tabuleiro();//funciona
+int delay(unsigned int milliseconds);//funciona
+int dados();//funciona
 void jogar();
-void init_jogador(); //att
-void init_peca(); //att
+void init_jogador(); //funciona
+void init_peca(); //
 void init_caminhos();//att
 void desenhar_peca(int id_peca,int x, int y);//att
 void desenhar_sempeca(int x,int y,int rosa);//att
-void init(); //att
+void init(); //funciona
 int verifica_vitoria();//att
 void tela_vitoria(int ply);//att
-int loading(unsigned int milliseconds);
+int loading(unsigned int milliseconds);//funciona
 int atualiza(int valorDado, peca* pecaMovida,int posic);
-void historia();
-int instrucao();
-int print_tit();
+void historia();//funciona
+int instrucao();//funciona
+int print_tit();//funciona
 int verificamov(int valorDado, peca* pecasJogador, int jogador);
 
 int main()
@@ -176,10 +176,15 @@ void jogar(){
     draw();
     printf("\nTurno de %s\n",jogador1);
     totdado=dados();
-    escolha=verificamov(totdado,pecasP1, 1);
-    if(escolha!=0){
+    if(totdado){
+      escolha=verificamov(totdado,pecasP1, 1);
       atualiza(totdado, pecasP1, escolha);
     }
+    else{
+      printf("\nPerdeu o turno");
+      delay(5000);
+    }
+
     vencedor=verifica_vitoria();
     if(vencedor){
       tela_vitoria(vencedor);
@@ -188,9 +193,13 @@ void jogar(){
     draw();
     printf("\nTurno de %s\n",jogador2);
     totdado=dados();
-    escolha=verificamov(totdado,pecasP2, 2);
-    if(escolha!=0){
-      atualiza(totdado, pecasP2, escolha);
+    if(totdado){
+      escolha=verificamov(totdado,pecasP1, 2);
+      atualiza(totdado, pecasP1, escolha);
+    }
+    else{
+      printf("\nPerdeu o turno");
+      delay(5000);
     }
     vencedor=verifica_vitoria();
     if(vencedor)
@@ -459,14 +468,14 @@ void init_caminhos()
 void desenhar_peca(int id_peca,int x, int y){
     if(id_peca>0)
     {
-      tabuleiro[x][y]=id_peca+'0';
+      tabuleiro[x][y]=id_peca-'0';
       tabuleiro[x+1][y]=jogador1[0];
       tabuleiro[x][y+1]=jogador1[0];
       tabuleiro[x+1][y+1]=jogador1[0];
     }
     else
     {
-      tabuleiro[x][y]=fabs(id_peca)+'0';
+      tabuleiro[x][y]=fabs(id_peca)-'0';
       tabuleiro[x+1][y]=jogador2[0];
       tabuleiro[x][y+1]=jogador2[0];
       tabuleiro[x+1][y+1]=jogador2[0];
@@ -524,10 +533,6 @@ int atualiza(int valorDado, peca* pecaMovida,int posic)
 {
   int segundoDado,escolha,idrival,r;
 
-  if (valorDado == 0)
-  {
-    return(0);
-  }
   if(pecaMovida[posic].Pcasa != NULL)
   {
     desenhar_sempeca(pecaMovida[posic].Pcasa->cordenada_x,pecaMovida[posic].Pcasa->cordenada_y,pecaMovida[posic].Pcasa->rosa);
@@ -581,8 +586,11 @@ int atualiza(int valorDado, peca* pecaMovida,int posic)
   if(pecaMovida[posic].Pcasa->rosa==1){
     draw();
     segundoDado=dados();
+    if(!segundoDado)
+      return 0;
     if(pecaMovida->id > 0)
     {
+      printf("\nTurno de %s\n",jogador1);
       escolha=verificamov(segundoDado,pecaMovida, 1);
       if(escolha!=0)
       {
@@ -591,6 +599,7 @@ int atualiza(int valorDado, peca* pecaMovida,int posic)
     }
     else
     {
+      printf("\nTurno de %s\n",jogador2);
       escolha=verificamov(segundoDado,pecaMovida, 2);
       if(escolha!=0)
       {
@@ -599,7 +608,7 @@ int atualiza(int valorDado, peca* pecaMovida,int posic)
     }
 
   }
-  return(0);
+  return 0;
 }
 
 int verificamov(int valorDado, peca* pecasJogador, int jogador)
@@ -682,14 +691,14 @@ int verificamov(int valorDado, peca* pecasJogador, int jogador)
       }
     }
   }
-  printf("Movimentos validos: ");
+  printf("\nMovimentos validos: ");
   while(k!=7){
     if(pecasValidas[k]!=0)
       cont++;
     k++;
   }
   if(cont==0){
-    printf("Nao existe movimentos validos");
+    printf("\nNao existe movimentos validos");
     return 0;
   }
   else{
@@ -707,20 +716,17 @@ int verificamov(int valorDado, peca* pecasJogador, int jogador)
       while(k!=7){
         if(pecasValidas[k] == 1 && escolha == k + 1)
         {
-          return escolha - 1;
+          return escolha-1;
         }
-        if(escolha==pcganha+1){
-          pecasJogador[pcganha].pontuada=1;
-          return escolha - 1;
-
+          k++;
         }
 
-        k++;
+
       }
       printf("Movimento invalido");
    }
   }
-}
+
 int instrucao()
 {
   printf("Para jogar o Jogo Real de Ur são necessários 2 jogadores:\n\n");
@@ -741,7 +747,7 @@ int instrucao()
   return 0;
 }
 
-int print_tit () {
+int print_tit(){
 printf("     %s_   _____   _____   _____        _____    _____       ___   _            _____   _____        _   _   _____  %s \n", MAG, RESET);
 printf ("%s    | | /  _  \\ /  ___| /  _  \\      |  _  \\  | ____|     /   | | |          |  _  \\ | ____|      | | | | |  _  \\ %s \n", MAG, RESET);
 printf ("%s    | | | | | | | |     | | | |      | |_| |  | |__      / /| | | |          | | | | | |__        | | | | | |_| |%s\n", MAG, RESET);
