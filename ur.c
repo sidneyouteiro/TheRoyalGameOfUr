@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
+#include "textos.c"
 
 /*-------------------Macros*/
 #define TX 43 /*Tamanho do tabuleiro horizontal*/
@@ -11,17 +12,6 @@
 #define ROSA_3 ((x > 15 && x < 20) && (y > 3 && y < 6))
 #define ROSA_4 ((x > 30 && x < 35) && (y > 0 && y < 3))
 #define ROSA_5 ((x > 30 && x < 35) && (y > 6 && y < 9))
-
-
-/* cores para uso no terminal*/
-#define RED   "\x1B[31m"
-#define GRN   "\x1B[32m"
-#define YEL   "\x1B[33m"
-#define BLU   "\x1B[34m"
-#define MAG   "\x1B[35m"
-#define CYN   "\x1B[36m"
-#define WHT   "\x1B[37m"
-#define RESET "\x1B[0m"
 
 
 char tabuleiro[TY][TX]; /* array que guarda o tabuleiro*/
@@ -67,17 +57,17 @@ void jogar();
 void init_jogador(); //funciona
 void init_peca(); //
 void init_caminhos();//att
-void desenhar_peca(int id_peca,int x, int y);//att
-void desenhar_sempeca(int x,int y,int rosa);//att
+void desenhar_peca(int id_peca,int x, int y);//funciona
+void desenhar_sempeca(int x,int y,int rosa);//funciona
 void init(); //funciona
 int verifica_vitoria();//att
 void tela_vitoria(int ply);//att
 int loading(unsigned int milliseconds);//funciona
-int atualiza(int valorDado, peca* pecaMovida,int posic);
+int atualiza(int valorDado, peca pecaMovida,int jogador);
 void historia();//funciona
 int instrucao();//funciona
 int print_tit();//funciona
-int verificamov(int valorDado, peca* pecasJogador, int jogador);
+int verificamov(int Dado,peca* pc);
 
 int main()
 {
@@ -130,20 +120,6 @@ void draw(){
   printf("Placar: p1-%d p2-%d", placarP1, placarP2);
 }
 
-void historia(){
-  system("clear");
-  printf("\nThe Royal Game of Ur ou Game of Ur, foi popular em todo o Oriente Médio no terceiro milênio A.C e tabuleiros para ele");
-  printf(" foram encontrados no Irã, Síria, Egito, Líbano, Sri Lanka, Chipre e Creta. Jogo de Ur eventualmente adquiriu significado\n");
-  printf(" supersticioso fornecendo previsões vagas para o futuro dos jogadores se eles pousarem em certas casas do tabuleiro,");
-  printf(" como \nVocê encontrará um amigo\n ou \nVocê se tornará poderoso como um leão.\n\nO jogo possui esse nome devido ao seu redescobrimento");
-  printf(" em uma das escavações do arqueologo Sir Leonard Woolley no cemiterio real de ur. Entretanto mais tarde arqueologos descobririam copias do jogo em varias localidade do Oriente Medio.\n");
-  printf(" E as regras só foram redescobertas em 1980, pelo historiador Irving Finkel através de placa de barro escritas por um escriba babiloniano\n");
-  printf("Pressione ENTER key para continuar\n");
-  getchar();
-  getchar();
-}
-
-
 void init_tabuleiro(){
   FILE* tabuleiro_a; /* arquivo que guarda o tabuleiro*/
 
@@ -177,12 +153,12 @@ void jogar(){
     printf("\nTurno de %s\n",jogador1);
     totdado=dados();
     if(totdado){
-      escolha=verificamov(totdado,pecasP1, 1);
-      atualiza(totdado, pecasP1, escolha);
+      escolha = verificamov(totdado,pecasP1);
+      atualiza(totdado, pecasP1[escolha], 1);
     }
     else{
       printf("\nPerdeu o turno");
-      delay(5000);
+      delay(2000);
     }
 
     vencedor=verifica_vitoria();
@@ -193,13 +169,15 @@ void jogar(){
     draw();
     printf("\nTurno de %s\n",jogador2);
     totdado=dados();
-    if(totdado){
-      escolha=verificamov(totdado,pecasP1, 2);
-      atualiza(totdado, pecasP1, escolha);
+    if(totdado)
+    {
+      escolha=verificamov(totdado,pecasP2);
+      atualiza(totdado,pecasP2[escolha],2);
     }
-    else{
+    else
+    {
       printf("\nPerdeu o turno");
-      delay(5000);
+      delay(2000);
     }
     vencedor=verifica_vitoria();
     if(vencedor)
@@ -468,14 +446,14 @@ void init_caminhos()
 void desenhar_peca(int id_peca,int x, int y){
     if(id_peca>0)
     {
-      tabuleiro[x][y]=id_peca-'0';
+      tabuleiro[x][y]=id_peca +'0';
       tabuleiro[x+1][y]=jogador1[0];
       tabuleiro[x][y+1]=jogador1[0];
       tabuleiro[x+1][y+1]=jogador1[0];
     }
     else
     {
-      tabuleiro[x][y]=fabs(id_peca)-'0';
+      tabuleiro[x][y]=fabs(id_peca)+'0';
       tabuleiro[x+1][y]=jogador2[0];
       tabuleiro[x][y+1]=jogador2[0];
       tabuleiro[x+1][y+1]=jogador2[0];
@@ -514,14 +492,6 @@ int verifica_vitoria()
   return 0;
 }
 
-void tela_vitoria(int ply)
-{
-  system("clear");
-  if(ply==1) printf("Parabens %s",jogador1);
-  else printf("Parabens %s",jogador2);
-  delay(5000);
-}
-
 void init(){
   init_tabuleiro();
   init_jogador();
@@ -529,232 +499,196 @@ void init(){
   init_caminhos();
 }
 
-int atualiza(int valorDado, peca* pecaMovida,int posic)
-{
-  int segundoDado,escolha,idrival,r;
+int atualiza(int valorDado, peca pecaMovida,int jogador)
+{ //se uma peca vai pra uma casa vazia tira o id da casa de origem e passa pro destino
 
-  if(pecaMovida[posic].Pcasa != NULL)
+  if(pecaMovida.Pcasa == NULL) //se a peça esta fora do tabuleiro
   {
-    desenhar_sempeca(pecaMovida[posic].Pcasa->cordenada_x,pecaMovida[posic].Pcasa->cordenada_y,pecaMovida[posic].Pcasa->rosa);
-  }
-  for (int i = 0; i < valorDado; i++)
-  {
-    if(pecaMovida[posic].Pcasa == NULL)
+    if(pecaMovida.id > 0)
     {
-      if(pecaMovida[posic].id > 0)
-      {
-        pecaMovida[posic].Pcasa = inicialp1;
-      }
-      else
-      {
-        pecaMovida[posic].Pcasa = inicialp2;
-      }
+      pecaMovida.Pcasa = &inicialp1[valorDado-1];
     }
     else
     {
-      if(pecaMovida[posic].Pcasa->cordenada_x == meio[7].cordenada_x && pecaMovida[posic].Pcasa->cordenada_y == meio[7].cordenada_y)
-      {
-        if(pecaMovida[posic].id>0)
-        {
-          pecaMovida[posic].Pcasa = pecaMovida[posic].Pcasa->p1_casa;
-        }
-        else
-        {
-          pecaMovida[posic].Pcasa = pecaMovida[posic].Pcasa->p2_casa;
-        }
-      }
-      else
-      {
-        pecaMovida[posic].Pcasa = pecaMovida[posic].Pcasa->p_casa;
-      }
+      pecaMovida.Pcasa = &inicialp2[valorDado-1];
     }
-  }
-  if(pecaMovida[posic].Pcasa->peca!=0){
-    idrival=pecaMovida[posic].Pcasa->peca;
-    if(idrival>0){
-      while(idrival!=pecasP1[r].id) r++;
-      pecasP1[r].Pcasa=NULL;
-    }
-    else{
-      while(idrival!=pecasP2[r].id) r++;
-      pecasP2[r].Pcasa=NULL;
-    }
-
-  }
-  pecaMovida[posic].Pcasa->peca = pecaMovida[posic].id;
-  desenhar_peca(pecaMovida[posic].id,pecaMovida[posic].Pcasa->cordenada_x,pecaMovida[posic].Pcasa->cordenada_y);
-  if(pecaMovida[posic].Pcasa->rosa==1){
-    draw();
-    segundoDado=dados();
-    if(!segundoDado)
-      return 0;
-    if(pecaMovida->id > 0)
-    {
-      printf("\nTurno de %s\n",jogador1);
-      escolha=verificamov(segundoDado,pecaMovida, 1);
-      if(escolha!=0)
-      {
-        atualiza(segundoDado, pecasP1, escolha);
-      }
-    }
-    else
-    {
-      printf("\nTurno de %s\n",jogador2);
-      escolha=verificamov(segundoDado,pecaMovida, 2);
-      if(escolha!=0)
-      {
-        atualiza(segundoDado, pecasP2, escolha);
-      }
-    }
-
-  }
-  return 0;
-}
-
-int verificamov(int valorDado, peca* pecasJogador, int jogador)
-{
-  int pecasValidas[7]={1,1,1,1,1,1,1};
-  int cont=0,k=0,escolha;
-  int j = 0; //contador
-  int pcganha;
-  casa* auxCasa = NULL;
-  for (int i = 0; i < 7; i++)
-  {
-
-    if(pecasJogador[i].pontuada == 1)
-    {
-      pecasValidas[i] = 0;
-      continue;
-    }
-
-    if(pecasJogador[i].Pcasa == NULL)
-    {
-      if(jogador == 1)
-      {
-        auxCasa = inicialp1;
-      }
-      else
-      {
-        auxCasa = inicialp2;
-      }
-      goto jump;
-    }
-
-    if((pecasJogador[i].Pcasa->disAtePonto != 0) && (pecasJogador[i].Pcasa->disAtePonto != valorDado))
-    {
-      pecasValidas[i] = 0;
-      continue;
-    }
-    if((pecasJogador[i].Pcasa->disAtePonto != 0) && (pecasJogador[i].Pcasa->disAtePonto == valorDado))
-      pcganha=i;
-
-    auxCasa = pecasJogador[i].Pcasa;
-    jump:
-    for (j = 0; j < valorDado; j++)
-    {
-      if (pecasJogador[i].Pcasa == NULL)
-      {
-        j++;
-        goto jump2;
-      }
-      if(pecasJogador[i].Pcasa->cordenada_x == meio[7].cordenada_x && pecasJogador[i].Pcasa->cordenada_y == meio[7].cordenada_y)
-      {
-        if(jogador == 1)
-        {
-          auxCasa = auxCasa->p1_casa;
-        }
-        else
-        {
-          auxCasa = auxCasa->p2_casa;
-        }
-      }
-      else
-      {
-        auxCasa = auxCasa->p_casa;
-      }
-    }
-    jump2:
-    if(jogador == 1)
-    {
-      if(auxCasa->peca > 0)
-      {
-        pecasValidas[i] = 0;
-        continue;
-      }
-    }
-    else
-    {
-      if(auxCasa->peca < 0)
-      {
-        pecasValidas[i] = 0;
-        continue;
-      }
-    }
-  }
-  printf("\nMovimentos validos: ");
-  while(k!=7){
-    if(pecasValidas[k]!=0)
-      cont++;
-    k++;
-  }
-  if(cont==0){
-    printf("\nNao existe movimentos validos");
     return 0;
+
   }
-  else{
-   k=0;
-   while(k!=7){
-     if(pecasValidas[k]!=0)
-       printf("%d ", k + 1);
-     k++;
-   }
-   while(1){
-      k=0;
 
-      printf("\nQual sera seu movimento? ");
-      scanf("%d",&escolha);
-      while(k!=7){
-        if(pecasValidas[k] == 1 && escolha == k + 1)
-        {
-          return escolha-1;
-        }
-          k++;
-        }
+  pecaMovida.Pcasa->peca = 0; //retira a peça do registro da casa
+  desenhar_sempeca(pecaMovida.Pcasa->cordenada_x,pecaMovida.Pcasa->cordenada_y,pecaMovida.Pcasa->rosa);
 
-
+  for(int i=0; i<valorDado; i++) //move o registro da peca para a nova casa
+  {
+    pecaMovida.Pcasa = pecaMovida.Pcasa->p_casa;
+    if(pecaMovida.Pcasa->p_casa != NULL)
+    {
+      pecaMovida.Pcasa = pecaMovida.Pcasa->p_casa;
+    }
+    else
+    {
+      if(pecaMovida.id > 0)
+      {
+        pecaMovida.Pcasa = pecaMovida.Pcasa->p1_casa;
       }
-      printf("Movimento invalido");
-   }
+      else
+      {
+        pecaMovida.Pcasa = pecaMovida.Pcasa->p2_casa;
+      }
   }
 
-int instrucao()
-{
-  printf("Para jogar o Jogo Real de Ur são necessários 2 jogadores:\n\n");
-  printf("Cada Jogador possui 7 peças que devem percorrer o caminho inteiro do tabuleiro ");
-  printf("e quem o fizer primeiro ganha.\n\n");
-  printf("Cada turno é composto de duas ações: \n\n");
-  printf("1- O jogador rola 4 dados que possuim valor 1 e 0, a soma dos dados é o numero de movimentos que ele faz.\n");
-  printf("2- O jogador escolhe mover uma peça que esta no tabuleiro ou coloca uma peça nova. ");
-  printf("Essa peça então se movera o numero de espaços que foi tirado no dado\n\n");
-  printf("Se a casa para a qual a peça se move esta ocupada por uma peça do adversário");
-  printf(" o adversario retira sua peça do tabuleiro sem pontuar.\n");
-  printf("Não é permitido mover uma peça sua para uma casa já ocupada por você.\n\n");
-  printf("Se uma peça cai numa casa marcada por um X vermelho o jogador ganha outro movimento e essa peça fica imune ate sair da casa.\n\n");
-  printf("Para pontuar é necessário movimentar uma peça exatamente uma casa a mais do que o fim do tabuleiro\n\n");
-  printf("Pressione ENTER key para continuar\n");
-  getchar();
-  getchar();
+  if(pecaMovida.Pcasa->peca!=0){
+    if(jogador==1)
+    {
+      pecasP2[(pecaMovida.Pcasa->peca) -1].Pcasa=NULL;
+    }
+    else
+    {
+      pecasP1[(pecaMovida.Pcasa->peca) -1].Pcasa=NULL;
+    }
+
+  }
+
+  pecaMovida.Pcasa->peca=pecaMovida.id;
+
+  desenhar_peca(pecaMovida.id,pecaMovida.Pcasa->cordenada_x,pecaMovida.Pcasa->cordenada_y);
   return 0;
+ }
 }
 
-int print_tit(){
-printf("     %s_   _____   _____   _____        _____    _____       ___   _            _____   _____        _   _   _____  %s \n", MAG, RESET);
-printf ("%s    | | /  _  \\ /  ___| /  _  \\      |  _  \\  | ____|     /   | | |          |  _  \\ | ____|      | | | | |  _  \\ %s \n", MAG, RESET);
-printf ("%s    | | | | | | | |     | | | |      | |_| |  | |__      / /| | | |          | | | | | |__        | | | | | |_| |%s\n", MAG, RESET);
-printf (" %s_  | | | | | | | |  _  | | | |      |  _  /  |  __|    / / | | | |          | | | | |  __|       | | | | |  _  /%s\n", MAG, RESET);
-printf ("%s| |_| | | |_| | | |_| | | |_| |      | | \\ \\  | |___   / /  | | | |___       | |_| | | |___       | |_| | | | \\ \\%s\n", MAG, RESET);
-printf ("%s\\_____/ \\_____/ \\_____/ \\_____/      |_|  \\_\\ |_____| /_/   |_| |_____|      |_____/ |_____|      \\_____/ |_|  \\_\\%s\n", MAG, RESET);
-return 0;
+int verificamov(int Dado,peca* pc)
+{
+  //saber se a peca esta pontuadas
+  //verificar se uma peca que aponta pro NULL pode se mover
+  //verificar se há um aliado ou rosa na casa   /*
+    int pecas[7] = {1,1,1,1,1,1,1};
+    int pecasVal[7] = {0};
+
+    for(int j = 0; j < 7; j++)
+    {
+       casa* auxCasa = NULL;
+
+       //verifica se as pecas estao pontuadas
+       if(pc[j].pontuada==1)
+       {
+         pecas[j]=0;
+         continue;
+       }
+
+       if(pc[j].Pcasa == NULL) //verifica se a peca esta fora do tabuleiro
+       {
+         // verifica se a casa para a qual a peca se moveria esta ocupada
+         if((pc[j].id > 0 && inicialp1[Dado-1].peca > 0) || (pc[j].id < 0 && inicialp2[Dado-1].peca < 0))
+         {
+            pecas[j] = 0; //se tiver não é possivel o movimento
+            continue;
+         }
+         else
+         {
+           continue; //se não tiver o movimento é possivel
+         }
+       }
+
+       /*------A partir desse ponto todas as peças estão no tabuleiro------*/
+
+
+       auxCasa = pc[j].Pcasa; //move o ponteiro auxiliar para a casa esperada
+
+       if(auxCasa->disAtePonto != 0 && auxCasa->disAtePonto != Dado)
+       {
+         pecas[j] = 0;
+         continue;
+       }
+
+
+       for(int z = 0; z < Dado; z++)
+       {
+         if(auxCasa->p_casa != NULL)
+         {
+           auxCasa = auxCasa->p_casa;
+         }
+         else
+         {
+           if(pc[j].id > 0)
+           {
+             auxCasa = auxCasa->p1_casa;
+           }
+           else
+           {
+             auxCasa = auxCasa->p2_casa;
+           }
+        }
+
+       if(auxCasa->peca == 0) //checa se a casa esta vazia
+       {
+         continue; //se tiver, a casa é valida
+       }
+
+       /*------A partir desse ponto todas as casa estão preenchidas------*/
+
+
+       if(auxCasa->rosa == 1) // se a casa é rosa e esta ocupada não é possivel
+       {
+         pecas[j]=0;
+         continue;
+       }
+
+       if(signbit((float)auxCasa->peca) != signbit((float)pc[j].id))
+       {
+         pecas[j]=0;
+         continue;
+       }
+     }
+  /*Aqui temos o vetor pecas ja com os movimentos verificados*/
+
+  int z=0;
+  for(int i=0;i<7;i++) //cria o vetor de peças validas
+  {
+    if(pecas[i]==0)
+      continue;
+
+    pecasVal[z]=i+1;
+    z++;
+  }
+
+  printf("Movimentos Validos: ");
+  int j = 0;
+  while(pecasVal[j] != 0)
+  {
+    printf("%d ",pecasVal[j]);
+    j++;
+  }
+
+  if(pecasVal[0]==0)
+  {
+    printf("Nao ha movimentos validos");
+    return -1;
+  }
+  j=0;
+  int escolha;
+  while(1)
+  {
+    printf("\nInsira seu movimento: ");
+    sscanf(stdin,"%1d", escolha);
+    while (pecasVal[j]!= 0)
+    {
+      if(pecasVal[j]==escolha)
+      {
+        return (escolha - 1);
+      }
+      j++;
+    }
+  }
+}
+}
+
+void tela_vitoria(int ply)
+{
+  system("clear");
+  if(ply==1) printf("Parabens %s",jogador1);
+  else printf("Parabens %s",jogador2);
+  delay(5000);
 }
 
 /*
