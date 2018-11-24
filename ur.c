@@ -152,9 +152,13 @@ void jogar(){
     draw();
     printf("\nTurno de %s\n",jogador1);
     totdado=dados();
-    if(totdado){
+    if(totdado)
+    {
       escolha = verificamov(totdado,pecasP1);
-      atualiza(totdado, pecasP1[escolha], 1);
+      if(escolha != -1)
+      {
+        atualiza(totdado, pecasP1[escolha], 1);
+      }
     }
     else{
       printf("\nPerdeu o turno");
@@ -172,7 +176,10 @@ void jogar(){
     if(totdado)
     {
       escolha=verificamov(totdado,pecasP2);
-      atualiza(totdado,pecasP2[escolha],2);
+      if(escolha != -1)
+      {
+        atualiza(totdado,pecasP2[escolha],2);
+      }
     }
     else
     {
@@ -512,8 +519,7 @@ int atualiza(int valorDado, peca pecaMovida,int jogador)
     {
       pecaMovida.Pcasa = &inicialp2[valorDado-1];
     }
-    return 0;
-
+    goto jump;
   }
 
   pecaMovida.Pcasa->peca = 0; //retira a peça do registro da casa
@@ -547,11 +553,9 @@ int atualiza(int valorDado, peca pecaMovida,int jogador)
     {
       pecasP1[(pecaMovida.Pcasa->peca) -1].Pcasa=NULL;
     }
-
   }
-
+  jump:
   pecaMovida.Pcasa->peca=pecaMovida.id;
-
   desenhar_peca(pecaMovida.id,pecaMovida.Pcasa->cordenada_x,pecaMovida.Pcasa->cordenada_y);
   return 0;
  }
@@ -591,7 +595,6 @@ int verificamov(int Dado,peca* pc)
        }
 
        /*------A partir desse ponto todas as peças estão no tabuleiro------*/
-
 
        auxCasa = pc[j].Pcasa; //move o ponteiro auxiliar para a casa esperada
 
@@ -640,6 +643,7 @@ int verificamov(int Dado,peca* pc)
          continue;
        }
      }
+   }
   /*Aqui temos o vetor pecas ja com os movimentos verificados*/
 
   int z=0;
@@ -670,7 +674,7 @@ int verificamov(int Dado,peca* pc)
   while(1)
   {
     printf("\nInsira seu movimento: ");
-    sscanf(stdin,"%1d", escolha);
+    scanf("%d", &escolha);
     while (pecasVal[j]!= 0)
     {
       if(pecasVal[j]==escolha)
@@ -680,7 +684,6 @@ int verificamov(int Dado,peca* pc)
       j++;
     }
   }
-}
 }
 
 void tela_vitoria(int ply)
