@@ -32,6 +32,7 @@ typedef struct _cas{
   int peca; // 0 = vazia, positivo p1, negativo p2
   int rosa; // 0 = nao é rosa, 1 = rosa
   int finalVetor;
+  int disAtePonto; //distancia ate o fim do tabuleiro, se 0 não é possivel pontuar
   struct casa *p_casa;
   struct casa *p1_casa;
   struct casa *p2_casa;
@@ -67,21 +68,25 @@ void init_jogador(); //att
 void init_peca(); //att
 void init_caminhos();//att
 void desenhar_peca(int id_peca,int x, int y);//att
-void desenhar_sempeca(int x,int y);//att
+void desenhar_sempeca(int x,int y,int rosa);//att
 void init(); //att
 int verifica_vitoria();//att
 void tela_vitoria(int ply);//att
 int loading(unsigned int milliseconds);
-int atualiza(int valorDado, peca* pecaMovida);
+int atualiza(int valorDado, peca* pecaMovida,int posic);
 void historia();
 int instrucao();
+int print_tit();
+int verificamov(int valorDado, peca* pecasJogador, int jogador);
 
 int main()
 {
   int menu;
   while(1){
    system("clear");
-   printf("\n1-Jogarr\n2-Regras\n3-historia\n4-Sair\n");
+   print_tit();
+   printf("\n\n\n");
+   printf("\n1-Jogar\n2-Regras\n3-historia\n4-Sair\n");
    scanf("%d",&menu);
    switch (menu) {
      case 1: jogar();
@@ -115,6 +120,14 @@ void draw(){
     }
   }
   printf("\n");
+  int placarP1 = 0;
+  int placarP2 = 0;
+  for(int j = 0; j < 7; j++)
+  {
+    placarP1 += pecasP1[j].pontuada;
+    placarP2 += pecasP2[j].pontuada;
+  }
+  printf("Placar: p1-%d p2-%d", placarP1, placarP2);
 }
 
 void historia(){
@@ -154,26 +167,39 @@ void jogar(){
   srandom(time(NULL));
   int totdado,vencedor;
   int escolha;
-  peca* pecaMovida = NULL;
   init();
   while (1)
   {
     //draw()->dado();->vericar movimentos possiveis->input do jogador->
     //->atualizar tabuleiro
 
-    draw();//turno do jogador 1
+    draw();
+    printf("\nTurno de %s\n",jogador1);
     totdado=dados();
-    escolha=verifica(totdado,pecasP1);
-    atualiza(totdado, pecasP1,escolha);
-    if(vencedor=verifica_vitoria()) tela_vitoria(vencedor);
-    draw();//turno do jogador 2
+    escolha=verificamov(totdado,pecasP1, 1);
+    if(escolha!=0){
+      atualiza(totdado, pecasP1, escolha);
+    }
+    vencedor=verifica_vitoria();
+    if(vencedor){
+      tela_vitoria(vencedor);
+      break;
+    }
+    draw();
+    printf("\nTurno de %s\n",jogador2);
     totdado=dados();
-    escolha=verifica(totdado,pecasP1);
-    atualiza(totdado, pecasP2,escolha);
+    escolha=verificamov(totdado,pecasP2, 2);
+    if(escolha!=0){
+      atualiza(totdado, pecasP2, escolha);
+    }
+    vencedor=verifica_vitoria();
+    if(vencedor)
+    {
+      tela_vitoria(vencedor);
+      break;
+    }
 
-    if(vencedor=verifica_vitoria()) tela_vitoria(vencedor);
-
-      }
+  }
 }
 
 void init_jogador(){
@@ -187,16 +213,17 @@ void init_peca(){
   int i,id1,id2;
   id1=1;
   id2=-1;
-  for(i=0;i<7;i++){
+  for(i=0;i<7;i++)
+  {
     (pecasP1[i].Pcasa)=NULL;
     (pecasP1[i].pontuada)=0;
-    (pecasP1[i].id)=id1+'0'; //somar '0' transforma um inteiro em char
+    (pecasP1[i].id)=id1; //somar '0' transforma um inteiro em char
     id1++;
   }
   for(i=0;i<7;i++){
     pecasP2[i].Pcasa=NULL;
     pecasP2[i].pontuada=0;
-    pecasP2[i].id=id2+'0';
+    pecasP2[i].id=id2;
     id2--;
   }
 }
@@ -289,6 +316,7 @@ void init_caminhos()
     inicialp1[i].cordenada_x = 1;
     inicialp1[i].cordenada_y = 17-5*i;
     inicialp1[i].peca = 0;
+    inicialp1[i].disAtePonto = 0;
     if(i == 3)
     {
       inicialp1[i].rosa = 1;
@@ -311,6 +339,7 @@ void init_caminhos()
     inicialp2[i].cordenada_x = 7;
     inicialp2[i].cordenada_y = 17-5*i;
     inicialp2[i].peca = 0;
+    inicialp1[i].disAtePonto = 0;
     if(i == 3)
     {
       inicialp2[i].rosa = 1;
@@ -333,6 +362,7 @@ void init_caminhos()
     finalp1[i].cordenada_x = 1;
     finalp1[i].cordenada_y = 37-5*i;
     finalp1[i].peca = 0;
+    finalp1[i].disAtePonto = 2 - i;
     if(i == 1)
     {
       finalp1[i].rosa = 1;
@@ -360,6 +390,7 @@ void init_caminhos()
     finalp2[i].cordenada_x = 7;
     finalp2[i].cordenada_y = 37-5*i;
     finalp1[i].peca = 0;
+    finalp1[i].disAtePonto = 2 - i;
     if(i == 1)
     {
       finalp2[i].rosa = 1;
@@ -387,6 +418,14 @@ void init_caminhos()
     meio[i].cordenada_x = 4;
     meio[i].cordenada_y = 2 + 5*i;
     meio[i].peca = 0;
+    if (i > 5)
+    {
+      meio[i].disAtePonto = 10 - i;
+    }
+    else
+    {
+      meio[i].disAtePonto = 0;
+    }
 
     if(i == 3)
     {
@@ -420,22 +459,22 @@ void init_caminhos()
 void desenhar_peca(int id_peca,int x, int y){
     if(id_peca>0)
     {
-      tabuleiro[x][y]=id_peca;
+      tabuleiro[x][y]=id_peca+'0';
       tabuleiro[x+1][y]=jogador1[0];
       tabuleiro[x][y+1]=jogador1[0];
       tabuleiro[x+1][y+1]=jogador1[0];
     }
     else
     {
-      tabuleiro[x][y]=fabs(id_peca);
+      tabuleiro[x][y]=fabs(id_peca)+'0';
       tabuleiro[x+1][y]=jogador2[0];
       tabuleiro[x][y+1]=jogador2[0];
       tabuleiro[x+1][y+1]=jogador2[0];
     }
 }
 
-void desenhar_sempeca(int x,int y){
-   if(ROSA_1||ROSA_2||ROSA_3||ROSA_4||ROSA_5)
+void desenhar_sempeca(int x,int y,int rosa){
+   if(rosa==1)
    {
      tabuleiro[x][y]    = '\\';
      tabuleiro[x+1][y]  =  '/';
@@ -451,16 +490,19 @@ void desenhar_sempeca(int x,int y){
    }
 }
 
-int verifica_vitoria(){
+int verifica_vitoria()
+{
   for(int i=0;i<7;i++)//verifica se há vencedor
     if(pecasP1[i].pontuada!=1 && pecasP2[i].pontuada!=1)
       return 0;
-  for(int i=0;i<7;i++){//identifica o vencedor
+  for(int i=0;i<7;i++)
+  {//identifica o vencedor
     if(pecasP1[i].pontuada==0)
       return 2;
     if(pecasP2[i].pontuada==0)
       return 1;
   }
+  return 0;
 }
 
 void tela_vitoria(int ply)
@@ -480,19 +522,28 @@ void init(){
 
 int atualiza(int valorDado, peca* pecaMovida,int posic)
 {
+  int segundoDado,escolha,idrival,r;
+
   if (valorDado == 0)
   {
     return(0);
   }
   if(pecaMovida[posic].Pcasa != NULL)
   {
-    desenhar_sempeca(pecaMovida[posic].Pcasa->cordenada_x,pecaMovida[posic].Pcasa->cordenada_y);
+    desenhar_sempeca(pecaMovida[posic].Pcasa->cordenada_x,pecaMovida[posic].Pcasa->cordenada_y,pecaMovida[posic].Pcasa->rosa);
   }
   for (int i = 0; i < valorDado; i++)
   {
     if(pecaMovida[posic].Pcasa == NULL)
     {
-      pecaMovida[posic].Pcasa = inicialp1;
+      if(pecaMovida[posic].id > 0)
+      {
+        pecaMovida[posic].Pcasa = inicialp1;
+      }
+      else
+      {
+        pecaMovida[posic].Pcasa = inicialp2;
+      }
     }
     else
     {
@@ -513,20 +564,162 @@ int atualiza(int valorDado, peca* pecaMovida,int posic)
       }
     }
   }
+  if(pecaMovida[posic].Pcasa->peca!=0){
+    idrival=pecaMovida[posic].Pcasa->peca;
+    if(idrival>0){
+      while(idrival!=pecasP1[r].id) r++;
+      pecasP1[r].Pcasa=NULL;
+    }
+    else{
+      while(idrival!=pecasP2[r].id) r++;
+      pecasP2[r].Pcasa=NULL;
+    }
+
+  }
   pecaMovida[posic].Pcasa->peca = pecaMovida[posic].id;
   desenhar_peca(pecaMovida[posic].id,pecaMovida[posic].Pcasa->cordenada_x,pecaMovida[posic].Pcasa->cordenada_y);
+  if(pecaMovida[posic].Pcasa->rosa==1){
+    draw();
+    segundoDado=dados();
+    if(pecaMovida->id > 0)
+    {
+      escolha=verificamov(segundoDado,pecaMovida, 1);
+      if(escolha!=0)
+      {
+        atualiza(segundoDado, pecasP1, escolha);
+      }
+    }
+    else
+    {
+      escolha=verificamov(segundoDado,pecaMovida, 2);
+      if(escolha!=0)
+      {
+        atualiza(segundoDado, pecasP2, escolha);
+      }
+    }
+
+  }
   return(0);
 }
 
-int verificamov(int valorDado, peca* pecasJogador)
+int verificamov(int valorDado, peca* pecasJogador, int jogador)
 {
-  int pecasValidas[7];
+  int pecasValidas[7]={1,1,1,1,1,1,1};
+  int cont=0,k=0,escolha;
+  int j = 0; //contador
+  int pcganha;
+  casa* auxCasa = NULL;
   for (int i = 0; i < 7; i++)
   {
-    pecasValidas[i] = 0;
-    if
-  }
 
+    if(pecasJogador[i].pontuada == 1)
+    {
+      pecasValidas[i] = 0;
+      continue;
+    }
+
+    if(pecasJogador[i].Pcasa == NULL)
+    {
+      if(jogador == 1)
+      {
+        auxCasa = inicialp1;
+      }
+      else
+      {
+        auxCasa = inicialp2;
+      }
+      goto jump;
+    }
+
+    if((pecasJogador[i].Pcasa->disAtePonto != 0) && (pecasJogador[i].Pcasa->disAtePonto != valorDado))
+    {
+      pecasValidas[i] = 0;
+      continue;
+    }
+    if((pecasJogador[i].Pcasa->disAtePonto != 0) && (pecasJogador[i].Pcasa->disAtePonto == valorDado))
+      pcganha=i;
+
+    auxCasa = pecasJogador[i].Pcasa;
+    jump:
+    for (j = 0; j < valorDado; j++)
+    {
+      if (pecasJogador[i].Pcasa == NULL)
+      {
+        j++;
+        goto jump2;
+      }
+      if(pecasJogador[i].Pcasa->cordenada_x == meio[7].cordenada_x && pecasJogador[i].Pcasa->cordenada_y == meio[7].cordenada_y)
+      {
+        if(jogador == 1)
+        {
+          auxCasa = auxCasa->p1_casa;
+        }
+        else
+        {
+          auxCasa = auxCasa->p2_casa;
+        }
+      }
+      else
+      {
+        auxCasa = auxCasa->p_casa;
+      }
+    }
+    jump2:
+    if(jogador == 1)
+    {
+      if(auxCasa->peca > 0)
+      {
+        pecasValidas[i] = 0;
+        continue;
+      }
+    }
+    else
+    {
+      if(auxCasa->peca < 0)
+      {
+        pecasValidas[i] = 0;
+        continue;
+      }
+    }
+  }
+  printf("Movimentos validos: ");
+  while(k!=7){
+    if(pecasValidas[k]!=0)
+      cont++;
+    k++;
+  }
+  if(cont==0){
+    printf("Nao existe movimentos validos");
+    return 0;
+  }
+  else{
+   k=0;
+   while(k!=7){
+     if(pecasValidas[k]!=0)
+       printf("%d ", k + 1);
+     k++;
+   }
+   while(1){
+      k=0;
+
+      printf("\nQual sera seu movimento? ");
+      scanf("%d",&escolha);
+      while(k!=7){
+        if(pecasValidas[k] == 1 && escolha == k + 1)
+        {
+          return escolha - 1;
+        }
+        if(escolha==pcganha+1){
+          pecasJogador[pcganha].pontuada=1;
+          return escolha - 1;
+
+        }
+
+        k++;
+      }
+      printf("Movimento invalido");
+   }
+  }
 }
 int instrucao()
 {
@@ -547,6 +740,17 @@ int instrucao()
   getchar();
   return 0;
 }
+
+int print_tit () {
+printf("     %s_   _____   _____   _____        _____    _____       ___   _            _____   _____        _   _   _____  %s \n", MAG, RESET);
+printf ("%s    | | /  _  \\ /  ___| /  _  \\      |  _  \\  | ____|     /   | | |          |  _  \\ | ____|      | | | | |  _  \\ %s \n", MAG, RESET);
+printf ("%s    | | | | | | | |     | | | |      | |_| |  | |__      / /| | | |          | | | | | |__        | | | | | |_| |%s\n", MAG, RESET);
+printf (" %s_  | | | | | | | |  _  | | | |      |  _  /  |  __|    / / | | | |          | | | | |  __|       | | | | |  _  /%s\n", MAG, RESET);
+printf ("%s| |_| | | |_| | | |_| | | |_| |      | | \\ \\  | |___   / /  | | | |___       | |_| | | |___       | |_| | | | \\ \\%s\n", MAG, RESET);
+printf ("%s\\_____/ \\_____/ \\_____/ \\_____/      |_|  \\_\\ |_____| /_/   |_| |_____|      |_____/ |_____|      \\_____/ |_|  \\_\\%s\n", MAG, RESET);
+return 0;
+}
+
 /*
 +----+----+----+----+         +----+----+
 | \/ |    |    |    |         |    | \/ |
