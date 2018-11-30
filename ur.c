@@ -25,8 +25,8 @@ typedef struct _casa
   int cordenada_x;
   int cordenada_y1;
   int cordenada_y2;
-  int pecaP1;  // 0 > vazia
-  int pecaP2; // 0 > vazia
+  int pecaP1;  // 0 < vazia
+  int pecaP2; // 0 < vazia
   int rosa;  // 0 = nao é rosa, 1 = rosa
 } casa;
 
@@ -62,8 +62,10 @@ void historia();//funciona
 int  instrucao();//funciona
 int  print_tit();//funciona
 void creditos();
-/*int  verificamov(int Dado,peca* pc);
+int verificamov(int dado, int jogador);
+int valida(char* c,int var);
 int  verifica_vitoria();
+/*
 int  atualiza(int valorDado, peca pecaMovida,int jogador);*/
 //tranquilo
 int main()
@@ -111,7 +113,7 @@ void draw(int player)
   }
   printf("\n");
   printf("Placar: p1-%d p2-%d", placarP1, placarP2);
-  if(player)
+  if(player==1)
   {
     printf("\nTurno de %s\n",jogador1);
   }
@@ -156,48 +158,48 @@ void jogar()
     //draw()->dado();->vericar movimentos possiveis->input do jogador->
     //->atualizar tabuleiro
 
-    draw(1);/*turno do jogador 1*/
+    /*turno do jogador 1*/
     totdado = dados();
-    /*if(totdado)
-    {
-      escolha = verificamov(totdado,pecasP1);
-      if(escolha != -1)
-      {
-        atualiza(totdado, pecasP1[escolha], 1);
-      }
-    }
-    else{
-      printf("\nPerdeu o turno");
-      delay(2000);
-    }*/
-
-    /*vencedor=verifica_vitoria();
-    if(vencedor){
-      tela_vitoria(vencedor);
-      break;
-    }
-    draw(2);/*turno do jogador 2*/
-    /*totdado=dados();
     if(totdado)
     {
-      escolha=verificamov(totdado,pecasP2);
-      if(escolha != -1)
-      {
-        atualiza(totdado,pecasP2[escolha],2);
-      }
+     escolha=verificamov(totdado, 1);
+     if(escolha < 0)
+     {
+       printf("\nNão há movimentos possiveis");
+       delay(3000);
+     }
+     else
+     {
+       atualiza(totdado,escolha,1);
+     }
     }
     else
     {
-      printf("\nPerdeu o turno");
-      delay(2000);
+      printf("\nPerdeu a vez");
+      delay(5000);
     }
-    vencedor=verifica_vitoria();
-    if(vencedor)
+    draw(1);
+     //turno do jogador2
+    totdado = dados();
+    if(totdado)
     {
-      tela_vitoria(vencedor);
-      break;
+     escolha=verificamov(totdado, 2);
+     if(escolha < 0)
+     {
+       printf("\nNão há movimentos possiveis");
+       delay(3000);
+     }
+     else
+     {
+       atualiza(totdado,escolha,2);
+     }
     }
-*/
+    else
+    {
+      printf("\nPerdeu a vez");
+      delay(5000);
+    }
+    draw(2);
   }
 }
 
@@ -411,24 +413,174 @@ void init()
   init_peca();
   init_caminho();
 }
-/*
-int atualiza(int valorDado, peca pecaMovida, int jogador)
+
+int atualiza(int valorDado, int indice, int jogador)
 {
+   int idRival1, idRival2;
+   if(jogador == 1)
+   {
+     desenhar_sempeca(pecasP1[indice].Prox_casa->cordenada_x, pecasP1[indice].Prox_casa->cordenada_y1, pecasP1[indice].Prox_casa->rosa);
+     pecasP1[indice].Prox_casa = (pecasP1[indice].Prox_casa) + valorDado;
+     pecasP1[indice].Prox_casa->pecaP1 = pecasP1[indice].id;
+     if(pecasP1[indice].Prox_casa->cordenada_x == 4 && pecasP1[indice].Prox_casa->pecaP2 > 0)
+     {
+       idRival2 = pecasP1[indice].Prox_casa->pecaP2;
+       pecasP2[idRival2].Prox_casa = NULL;
+       pecasP1[indice].Prox_casa->pecaP2 = -1;
+     }
+     if(pecasP1[indice].Prox_casa != &tab_interno[15])
+     {
+       desenhar_peca(pecasP1[indice].id, pecasP1[indice].Prox_casa->cordenada_x, pecasP1[indice].Prox_casa->cordenada_y1);
+     }
+     else
+     {
+       placarP1++;
+     }
+   }
+   else
+   {
+     desenhar_sempeca(pecasP2[indice].Prox_casa->cordenada_x, pecasP2[indice].Prox_casa->cordenada_y2, pecasP2[indice].Prox_casa->rosa);
+     pecasP2[indice].Prox_casa = (pecasP2[indice].Prox_casa) + valorDado;
+     pecasP2[indice].Prox_casa->pecaP2 = pecasP2[indice].id;
+     if(pecasP2[indice].Prox_casa->cordenada_x == 4 && pecasP2[indice].Prox_casa->pecaP2 > 0)
+     {
+       idRival1=pecasP2[indice].Prox_casa->pecaP2;
+       pecasP1[idRival1].Prox_casa = NULL;
+       pecasP2[indice].Prox_casa->pecaP2 = -1;
+     }
+     if(pecasP2[indice].Prox_casa!=&tab_interno[15])
+     {
+       desenhar_peca(pecasP2[indice].id,pecasP2[indice].Prox_casa->cordenada_x, pecasP2[indice].Prox_casa->cordenada_y2);
+     }
+     else
+     {
+       placarP2++;
+     }
+   }
+   return 0;
 }
 
 int verifica_vitoria()
 {
-
+  if(tab_interno[15].pecaP1 == 28)
+  {
+    return 1;
+  }
+  if(tab_interno[15].pecaP2 == 28)
+  {
+    return 2;
+  }
+  return 0;
 }
 
-int verificamov(int dado, peca *pc, int jogador)
+
+int verificamov(int dado, int jogador)
 {
+  casa *casaQueVai = NULL;
+  int pecasJogaveis[7];
+  if(jogador == 1)
+  {
+    for(int i = 0; i < 7; i++)
+    {
+      pecasJogaveis[i] = 1;
+      casaQueVai = (pecasP1[i].Prox_casa) + dado;
+      if(casaQueVai > &tab_interno[15] || pecasP1[i].Prox_casa == &tab_interno[15])
+      {
+        pecasJogaveis[i] = 0;
+        continue;
+      }
+      if(casaQueVai->pecaP1 > 0 && !(casaQueVai == &tab_interno[15]))
+      {
+        pecasJogaveis[i] = 0;
+        continue;
+      }
+      if(casaQueVai->rosa == 1 && casaQueVai->pecaP2 > 0)
+      {
+        pecasJogaveis[i] = 0;
+        continue;
+      }
+    }
+  }
+  else
+  {
+    for(int i = 0; i < 7; i++)
+    {
+      pecasJogaveis[i] = 1;
+      casaQueVai = pecasP2[i].Prox_casa + dado;
+      if(casaQueVai > &tab_interno[15] || pecasP2[i].Prox_casa == &tab_interno[15])
+      {
+        pecasJogaveis[i] = 0;
+        continue;
+      }
+      if(casaQueVai->pecaP2 > 0 && !(casaQueVai == &tab_interno[15]))
+      {
+        pecasJogaveis[i] = 0;
+        continue;
+      }
+      if(casaQueVai->rosa == 1 && casaQueVai->pecaP1 > 0)
+      {
+        pecasJogaveis[i] = 0;
+        continue;
+      }
+    }
+  }
+
+  int numeroDeMovimentosPossiveis = 0;
+  for(int i = 0; i < 7; i++)
+  {
+    numeroDeMovimentosPossiveis += pecasJogaveis[i];
+  }
+  if(numeroDeMovimentosPossiveis == 0)
+  {
+    return -1;
+  }
+
+  int escolha;
+  printf("\nPeças disponiveis: ");
+  for(int i = 0; i < 7; i++)
+  {
+    if(pecasJogaveis[i] == 1)
+    {
+      printf("%d ", i + 1 );
+    }
+  }
+  char c[20];
+  while(1)
+  {
+    printf("\n\n");
+    escolha=valida(c,escolha);
+    if(pecasJogaveis[escolha - 1] == 1)
+    {
+      break;
+    }
+    else
+    {
+      printf("\nEscolha invalida\n");
+      printf("Escolha outra peça");
+    }
+  }
+
+  return (escolha - 1);
 }
-*/
+
 void tela_vitoria(int ply)
 {
   system("clear");
   if(ply==1) printf("Parabens %s",jogador1);
   else printf("Parabens %s",jogador2);
   delay(5000);
+}
+
+
+int valida(char* c,int var)
+{
+
+  while(1)
+  {
+    gets(c);
+    if((sscanf(c,"%d",&var))==1)
+      break;
+
+  }
+  return var;
 }
