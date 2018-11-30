@@ -8,7 +8,7 @@
 
 #define TX 43 /*Tamanho do tabuleiro horizontal*/
 #define TY 10 /*Tamanho do tabuleiro vertical*/
-#define INTT 22 // tamanho do tabuleiro interno
+#define INTT 16 // tamanho do tabuleiro interno
 #define ROSA_1 ((x > 1  && x < 5 ) && (y > 0 && y < 3))
 #define ROSA_2 ((x > 1  && x < 5 ) && (y > 6 && y < 9))
 #define ROSA_3 ((x > 15 && x < 20) && (y > 3 && y < 6))
@@ -17,9 +17,10 @@
 
 
 char tabuleiro[TY][TX]; /* array que guarda o tabuleiro*/
+int placarP1 = 0;
+int placarP2 = 0;
 
-
-typedef struct _cas
+typedef struct _casa
 {
   int cordenada_x;
   int cordenada_y1;
@@ -34,7 +35,7 @@ casa tab_interno[INTT];
 typedef struct _pec
 {
   int id; /*numero de peças*/
-  casa* Pcasa;
+  struct _casa* Prox_casa;
 
 } peca;
 
@@ -44,7 +45,7 @@ char jogador2[21];
 peca pecasP1[7];
 peca pecasP2[7];
 
-void draw(); //funciona
+void draw(int player); //funciona
 void init_tabuleiro();//funciona
 int  delay(unsigned int milliseconds);//funciona
 int  dados();//funciona
@@ -55,15 +56,16 @@ void init_caminhos();//att
 void desenhar_peca(int id_peca,int x, int y);//funciona
 void desenhar_sempeca(int x,int y,int rosa);//funciona
 void init(); //funciona
-int  verifica_vitoria();//att
 void tela_vitoria(int ply);//att
 int  loading(unsigned int milliseconds);//funciona
-int  atualiza(int valorDado, peca pecaMovida,int jogador);
 void historia();//funciona
 int  instrucao();//funciona
 int  print_tit();//funciona
-int  verificamov(int Dado,peca* pc);
-
+void creditos();
+/*int  verificamov(int Dado,peca* pc);
+int  verifica_vitoria();
+int  atualiza(int valorDado, peca pecaMovida,int jogador);*/
+//tranquilo
 int main()
 {
   int menu;
@@ -71,7 +73,7 @@ int main()
    system("clear");
    print_tit();
    printf("\n\n\n");
-   printf("\n1-Jogar\n2-Regras\n3-historia\n4-Sair\n");
+   printf("\n1-Jogar\n2-Regras\n3-historia\n4-Creditos\n5-Sair\n\n->");
    scanf("%d",&menu);
    switch (menu) {
      case 1: jogar();
@@ -80,7 +82,9 @@ int main()
              break;
      case 3: historia();
              break;
-     case 4: return 0;
+     case 4: creditos();
+             break;
+     case 5: return 0;
 
      default:printf("Escolha uma das opções, por favor");
    }
@@ -90,7 +94,7 @@ int main()
 }
 
 
-void draw()
+void draw(int player)
 {
   int y;
   int x;
@@ -106,14 +110,14 @@ void draw()
     }
   }
   printf("\n");
-  int placarP1 = 0;
-  int placarP2 = 0;
-  for(int j = 0; j < 7; j++)
-  {
-    placarP1 += pecasP1[j].pontuada;
-    placarP2 += pecasP2[j].pontuada;
-  }
   printf("Placar: p1-%d p2-%d", placarP1, placarP2);
+  if(player)
+  {
+    printf("\nTurno de %s\n",jogador1);
+  }
+  else{
+    printf("\nTurno de %s\n",jogador2);
+  }
 }
 
 void init_tabuleiro()
@@ -152,10 +156,9 @@ void jogar()
     //draw()->dado();->vericar movimentos possiveis->input do jogador->
     //->atualizar tabuleiro
 
-    draw();
-    printf("\nTurno de %s\n",jogador1);
+    draw(1);/*turno do jogador 1*/
     totdado = dados();
-    if(totdado)
+    /*if(totdado)
     {
       escolha = verificamov(totdado,pecasP1);
       if(escolha != -1)
@@ -166,16 +169,15 @@ void jogar()
     else{
       printf("\nPerdeu o turno");
       delay(2000);
-    }
+    }*/
 
-    vencedor=verifica_vitoria();
+    /*vencedor=verifica_vitoria();
     if(vencedor){
       tela_vitoria(vencedor);
       break;
     }
-    draw();
-    printf("\nTurno de %s\n",jogador2);
-    totdado=dados();
+    draw(2);/*turno do jogador 2*/
+    /*totdado=dados();
     if(totdado)
     {
       escolha=verificamov(totdado,pecasP2);
@@ -195,7 +197,7 @@ void jogar()
       tela_vitoria(vencedor);
       break;
     }
-
+*/
   }
 }
 
@@ -209,17 +211,17 @@ void init_jogador(){
 void init_peca()
 {
   int i,id1,id2;
-  id1 = 0;
-  id2 = 0;
+  id1 = 1;
+  id2 = 1;
   for(i = 0; i < 7; i++)
   {
-    pecasP1[i].Pcasa = &tab_interno[0].pecaP1;
+    pecasP1[i].Prox_casa = &tab_interno[0];
     pecasP1[i].id = id1;
     id1++;
   }
   for(i=0;i<7;i++)
   {
-    pecasP1[i].Pcasa = &tab_interno[0].pecaP2;
+    pecasP1[i].Prox_casa = &tab_interno[0];
     pecasP2[i].id = id2;
     id2++;
   }
@@ -307,62 +309,62 @@ int loading(unsigned int milliseconds)
 
 void init_caminho()
 {
-  //inicia o caminho inicial
-  for (int i = 0; i < 5; i++)
-  {
-    tab_interno[i].cordenada_x = 17 - 5*i;
-    tab_interno[i].cordenada_y1 = 1;
-    tab_interno[i].cordenada_y2 = 7;
-    tab_interno[i].pecaP1 = -1;
-    tab_interno[i].pecaP2 = -1;
 
-    if(i == 4)
+  for (register int i = 0; i < INTT; i++)
+  {
+    if(i<5)
     {
+     tab_interno[i].cordenada_x = 17 - 5*i;
+     tab_interno[i].cordenada_y1 = 1;
+     tab_interno[i].cordenada_y2 = 7;
+     tab_interno[i].pecaP1 = -1;
+     tab_interno[i].pecaP2 = -1;
+     if(i == 4)
+     {
       tab_interno[i].rosa = 1;
+     }
+     else
+     {
+      tab_interno[i].rosa = 0;
+     }
     }
     else
-    {
-      tab_interno[i].rosa = 0;
-    }
-  }
+     if(i<13)
+     {
+       tab_interno[i].cordenada_x = 2 + 5*i;
+       tab_interno[i].cordenada_y1 = 4;
+       tab_interno[i].cordenada_y2 = 4;
+       tab_interno[i].cordenada_y2 = 4;
+       tab_interno[i].pecaP1 = -1;
+       tab_interno[i].pecaP2 = -1;
 
-  /*Inicializa o caminho do meio*/
-  for (int i = 5; i < 12; i++)
-  {
-    tab_interno[i].cordenada_x = 2 + 5*i;
-    tab_interno[i].cordenada_y1 = 4;
-    tab_interno[i].cordenada_y2 = 4;
-    tab_interno[i].cordenada_y2 = 4;
-    tab_interno[i].pecaP1 = -1;
-    tab_interno[i].pecaP2 = -1;
+       if(i == 8)
+       {
+         tab_interno[i].rosa = 1;
+       }
+       else
+       {
+         tab_interno[i].rosa = 0;
+       }
 
-    if(i == 8)
-    {
-      tab_interno[i].rosa = 1;
-    }
-    else
-    {
-      tab_interno[i].rosa = 0;
-    }
-  }
+     }
+     else
+     {
+       tab_interno[i].cordenada_x = 37 - 5*i;
+       tab_interno[i].cordenada_y1 = 1;
+       tab_interno[i].cordenada_y2 = 7;
+       tab_interno[i].pecaP1 = -1;
+       tab_interno[i].pecaP2 = -1;
 
-  /*inicializa caminho final*/
-  for (int i = 12; i < 22; i++)
-  {
-    tab_interno[i].cordenada_x = 37 - 5*i;
-    tab_interno[i].cordenada_y1 = 1;
-    tab_interno[i].cordenada_y2 = 7;
-    tab_interno[i].pecaP1 = -1;
-    tab_interno[i].pecaP2 = -1;
-
-    if(i == 20)
-    {
-      tab_interno[i].rosa = 1;
-    }
-    else
-    {
-      tab_interno[i].rosa = 0;
-    }
+       if(i == 14)
+       {
+         tab_interno[i].rosa = 1;
+       }
+       else
+       {
+         tab_interno[i].rosa = 0;
+       }
+     }
   }
 }
 
@@ -401,37 +403,28 @@ void desenhar_sempeca(int x,int y,int rosa){
    }
 }
 
-int verifica_vitoria()
-{
-  for(int i=0; i<7; i++)//verifica se há vencedor
-    if(pecasP1[i].pontuada != 1 && pecasP2[i].pontuada != 1)
-      return 0;
-  for(int i=0; i<7; i++)
-  {//identifica o vencedor
-    if(pecasP1[i].pontuada == 0)
-      return 2;
-    if(pecasP2[i].pontuada==0)
-      return 1;
-  }
-  return 0;
-}
 
 void init()
 {
   init_tabuleiro();
   init_jogador();
   init_peca();
-  init_caminhos();
+  init_caminho();
 }
-
+/*
 int atualiza(int valorDado, peca pecaMovida, int jogador)
 {
+}
+
+int verifica_vitoria()
+{
+
 }
 
 int verificamov(int dado, peca *pc, int jogador)
 {
 }
-
+*/
 void tela_vitoria(int ply)
 {
   system("clear");

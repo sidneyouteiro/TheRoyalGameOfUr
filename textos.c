@@ -56,3 +56,15 @@ void historia()
   getchar();
   getchar();
 }
+
+void creditos()
+{
+  system("clear");
+  print_tit();
+  printf("\n\n\nCriadores:\n\n");
+  printf("Raphael Novello: https://github.com/RaphaelAN\n\n");
+  printf("Sidney Outeiro:  https://github.com/sidneyouteiro");
+  printf("\n\nPressione ENTER para continuar\n");
+  getchar();
+  getchar();
+}
