@@ -53,8 +53,8 @@ void jogar();
 void init_jogador(); //funciona
 void init_peca(); //
 void init_caminhos();//att
-void desenhar_peca(int id_peca,int x, int y);//funciona
-void desenhar_sempeca(int x,int y,int rosa);//funciona
+void desenhar_peca(int id_peca,int y, int x);//funciona
+void desenhar_sempeca(int y,int x,int rosa);//funciona
 void init(); //funciona
 void tela_vitoria(int ply);//att
 int  loading(unsigned int milliseconds);//funciona
@@ -65,8 +65,8 @@ void creditos();
 int verificamov(int dado, int jogador);
 int valida(char* c,int var);
 int  verifica_vitoria();
-/*
-int  atualiza(int valorDado, peca pecaMovida,int jogador);*/
+void mostrapeca();
+int atualiza(int valorDado, int indice, int jogador);
 //tranquilo
 int main()
 {
@@ -101,6 +101,7 @@ void draw(int player)
   int y;
   int x;
   printf("\033[2J\033[1;1H"); //mantem o tabuleiro no topo da tela
+  /*mostrapeca();*/
   for (y = 0; y < TY; y++)
   {
     for (x = 0; x < TX; x++)
@@ -159,6 +160,7 @@ void jogar()
     //->atualizar tabuleiro
 
     /*turno do jogador 1*/
+    draw(1);
     totdado = dados();
     if(totdado)
     {
@@ -171,27 +173,7 @@ void jogar()
      else
      {
        atualiza(totdado,escolha,1);
-     }
-    }
-    else
-    {
-      printf("\nPerdeu a vez");
-      delay(5000);
-    }
-    draw(1);
-     //turno do jogador2
-    totdado = dados();
-    if(totdado)
-    {
-     escolha=verificamov(totdado, 2);
-     if(escolha < 0)
-     {
-       printf("\nNão há movimentos possiveis");
-       delay(3000);
-     }
-     else
-     {
-       atualiza(totdado,escolha,2);
+       mostrapeca();
      }
     }
     else
@@ -200,6 +182,27 @@ void jogar()
       delay(5000);
     }
     draw(2);
+     //turno do jogador2
+    totdado = dados();
+    if(totdado)
+    {
+     escolha=verificamov(totdado, 2);
+     if(escolha < 0)
+     {
+       printf("\n\n\nNão há movimentos possiveis");
+       delay(3000);
+     }
+     else
+     {
+       atualiza(totdado,escolha,2);
+       mostrapeca();
+     }
+    }
+    else
+    {
+      printf("\n\n\nPerdeu a vez");
+      delay(5000);
+    }
   }
 }
 
@@ -370,7 +373,7 @@ void init_caminho()
   }
 }
 
-void desenhar_peca(int id_peca,int x, int y)
+void desenhar_peca(int id_peca,int y, int x)
 {
     if(id_peca > 0)
     {
@@ -388,7 +391,7 @@ void desenhar_peca(int id_peca,int x, int y)
     }
 }
 
-void desenhar_sempeca(int x,int y,int rosa){
+void desenhar_sempeca(int y,int x,int rosa){
    if(rosa==1)
    {
      tabuleiro[x][y]    = '\\';
@@ -419,7 +422,7 @@ int atualiza(int valorDado, int indice, int jogador)
    int idRival1, idRival2;
    if(jogador == 1)
    {
-     desenhar_sempeca(pecasP1[indice].Prox_casa->cordenada_x, pecasP1[indice].Prox_casa->cordenada_y1, pecasP1[indice].Prox_casa->rosa);
+
      pecasP1[indice].Prox_casa = (pecasP1[indice].Prox_casa) + valorDado;
      pecasP1[indice].Prox_casa->pecaP1 = pecasP1[indice].id;
      if(pecasP1[indice].Prox_casa->cordenada_x == 4 && pecasP1[indice].Prox_casa->pecaP2 > 0)
@@ -428,18 +431,13 @@ int atualiza(int valorDado, int indice, int jogador)
        pecasP2[idRival2].Prox_casa = NULL;
        pecasP1[indice].Prox_casa->pecaP2 = -1;
      }
-     if(pecasP1[indice].Prox_casa != &tab_interno[15])
-     {
-       desenhar_peca(pecasP1[indice].id, pecasP1[indice].Prox_casa->cordenada_x, pecasP1[indice].Prox_casa->cordenada_y1);
-     }
-     else
+     if(pecasP1[indice].Prox_casa == &tab_interno[15])
      {
        placarP1++;
      }
    }
    else
    {
-     desenhar_sempeca(pecasP2[indice].Prox_casa->cordenada_x, pecasP2[indice].Prox_casa->cordenada_y2, pecasP2[indice].Prox_casa->rosa);
      pecasP2[indice].Prox_casa = (pecasP2[indice].Prox_casa) + valorDado;
      pecasP2[indice].Prox_casa->pecaP2 = pecasP2[indice].id;
      if(pecasP2[indice].Prox_casa->cordenada_x == 4 && pecasP2[indice].Prox_casa->pecaP2 > 0)
@@ -448,11 +446,7 @@ int atualiza(int valorDado, int indice, int jogador)
        pecasP1[idRival1].Prox_casa = NULL;
        pecasP2[indice].Prox_casa->pecaP2 = -1;
      }
-     if(pecasP2[indice].Prox_casa!=&tab_interno[15])
-     {
-       desenhar_peca(pecasP2[indice].id,pecasP2[indice].Prox_casa->cordenada_x, pecasP2[indice].Prox_casa->cordenada_y2);
-     }
-     else
+     if(pecasP2[indice].Prox_casa==&tab_interno[15])
      {
        placarP2++;
      }
@@ -476,7 +470,7 @@ int verifica_vitoria()
 
 int verificamov(int dado, int jogador)
 {
-  casa *casaQueVai = NULL;
+  casa *casaQueVai;
   int pecasJogaveis[7];
   if(jogador == 1)
   {
@@ -506,7 +500,7 @@ int verificamov(int dado, int jogador)
     for(int i = 0; i < 7; i++)
     {
       pecasJogaveis[i] = 1;
-      casaQueVai = pecasP2[i].Prox_casa + dado;
+      casaQueVai = (pecasP2[i].Prox_casa) + dado;
       if(casaQueVai > &tab_interno[15] || pecasP2[i].Prox_casa == &tab_interno[15])
       {
         pecasJogaveis[i] = 0;
@@ -583,4 +577,35 @@ int valida(char* c,int var)
 
   }
   return var;
+}
+
+void mostrapeca()
+{
+  for(register int i=0;i<16;i++)
+  {
+    if(i==0 || i==15)
+    {
+      continue;
+    }
+    if(tab_interno[i].pecaP1==-1 && tab_interno[i].pecaP2==-1)
+    {
+      desenhar_sempeca(tab_interno[i].cordenada_x,tab_interno[i].cordenada_y1,tab_interno[i].rosa);
+      desenhar_sempeca(tab_interno[i].cordenada_x,tab_interno[i].cordenada_y2,tab_interno[i].rosa);
+    }
+    if(tab_interno[i].pecaP1!=-1 && tab_interno[i].pecaP2==-1)
+    {
+      desenhar_sempeca(tab_interno[i].cordenada_x,tab_interno[i].cordenada_y2,tab_interno[i].rosa);
+      desenhar_peca(tab_interno[i].pecaP1,tab_interno[i].cordenada_x,tab_interno[i].cordenada_y1);
+    }
+    if(tab_interno[i].pecaP2!=-1 && tab_interno[i].pecaP1==-1)
+    {
+      desenhar_sempeca(tab_interno[i].cordenada_x,tab_interno[i].cordenada_y1,tab_interno[i].rosa);
+      desenhar_peca(tab_interno[i].pecaP2,tab_interno[i].cordenada_x,tab_interno[i].cordenada_y2);
+    }
+    if(tab_interno[i].pecaP1!=-1 && tab_interno[i].pecaP2!=-1 && (i<5 || i>13))
+    {
+      desenhar_peca(tab_interno[i].pecaP1,tab_interno[i].cordenada_x,tab_interno[i].cordenada_y1);
+      desenhar_peca(tab_interno[i].pecaP2,tab_interno[i].cordenada_x,tab_interno[i].cordenada_y2);
+    }
+  }
 }
