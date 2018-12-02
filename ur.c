@@ -425,10 +425,10 @@ int atualiza(int valorDado, int indice, int jogador)
 
      pecasP1[indice].Prox_casa = (pecasP1[indice].Prox_casa) + valorDado;
      pecasP1[indice].Prox_casa->pecaP1 = pecasP1[indice].id;
-     if(pecasP1[indice].Prox_casa->cordenada_x == 4 && pecasP1[indice].Prox_casa->pecaP2 > 0)
+     if(pecasP1[indice].Prox_casa->cordenada_y1 == 4 && pecasP1[indice].Prox_casa->pecaP2 > 0)
      {
-       idRival2 = pecasP1[indice].Prox_casa->pecaP2;
-       pecasP2[idRival2].Prox_casa = NULL;
+       idRival2 = (pecasP1[indice].Prox_casa->pecaP2) - 1;
+       pecasP2[idRival2].Prox_casa = &tab_interno[0];
        pecasP1[indice].Prox_casa->pecaP2 = -1;
      }
      if(pecasP1[indice].Prox_casa == &tab_interno[15])
@@ -440,13 +440,13 @@ int atualiza(int valorDado, int indice, int jogador)
    {
      pecasP2[indice].Prox_casa = (pecasP2[indice].Prox_casa) + valorDado;
      pecasP2[indice].Prox_casa->pecaP2 = pecasP2[indice].id;
-     if(pecasP2[indice].Prox_casa->cordenada_x == 4 && pecasP2[indice].Prox_casa->pecaP2 > 0)
+     if(pecasP2[indice].Prox_casa->cordenada_y2 == 4 && pecasP2[indice].Prox_casa->pecaP1 > 0)
      {
-       idRival1=pecasP2[indice].Prox_casa->pecaP2;
-       pecasP1[idRival1].Prox_casa = NULL;
+       idRival1 = (pecasP2[indice].Prox_casa->pecaP2) - 1;
+       pecasP1[idRival1].Prox_casa = &tab_interno[0];
        pecasP2[indice].Prox_casa->pecaP2 = -1;
      }
-     if(pecasP2[indice].Prox_casa==&tab_interno[15])
+     if(pecasP2[indice].Prox_casa == &tab_interno[15])
      {
        placarP2++;
      }
