@@ -178,7 +178,8 @@ void jogar()
     }
     else
     {
-      printf("\nPerdeu a vez");
+      delay(50);
+      puts("\nPerdeu a vez");
       delay(5000);
     }
     draw(2);
@@ -200,6 +201,7 @@ void jogar()
     }
     else
     {
+      delay(50);
       printf("\n\n\nPerdeu a vez");
       delay(5000);
     }
@@ -226,7 +228,7 @@ void init_peca()
   }
   for(i=0;i<7;i++)
   {
-    pecasP1[i].Prox_casa = &tab_interno[0];
+    pecasP2[i].Prox_casa = &tab_interno[0];
     pecasP2[i].id = id2;
     id2++;
   }
@@ -501,6 +503,7 @@ int verificamov(int dado, int jogador)
     {
       pecasJogaveis[i] = 1;
       casaQueVai = (pecasP2[i].Prox_casa) + dado;
+
       if(casaQueVai > &tab_interno[15] || pecasP2[i].Prox_casa == &tab_interno[15])
       {
         pecasJogaveis[i] = 0;
@@ -592,20 +595,15 @@ void mostrapeca()
       desenhar_sempeca(tab_interno[i].cordenada_x,tab_interno[i].cordenada_y1,tab_interno[i].rosa);
       desenhar_sempeca(tab_interno[i].cordenada_x,tab_interno[i].cordenada_y2,tab_interno[i].rosa);
     }
-    if(tab_interno[i].pecaP1!=-1 && tab_interno[i].pecaP2==-1)
-    {
-      desenhar_sempeca(tab_interno[i].cordenada_x,tab_interno[i].cordenada_y2,tab_interno[i].rosa);
-      desenhar_peca(tab_interno[i].pecaP1,tab_interno[i].cordenada_x,tab_interno[i].cordenada_y1);
-    }
-    if(tab_interno[i].pecaP2!=-1 && tab_interno[i].pecaP1==-1)
+    if(tab_interno[i].pecaP1==-1 && tab_interno[i].pecaP2!=-1)
     {
       desenhar_sempeca(tab_interno[i].cordenada_x,tab_interno[i].cordenada_y1,tab_interno[i].rosa);
       desenhar_peca(tab_interno[i].pecaP2,tab_interno[i].cordenada_x,tab_interno[i].cordenada_y2);
     }
-    if(tab_interno[i].pecaP1!=-1 && tab_interno[i].pecaP2!=-1 && (i<5 || i>13))
+    if(tab_interno[i].pecaP1!=-1 && tab_interno[i].pecaP2==-1)
     {
+      desenhar_sempeca(tab_interno[i].cordenada_x,tab_interno[i].cordenada_y2,tab_interno[i].rosa);
       desenhar_peca(tab_interno[i].pecaP1,tab_interno[i].cordenada_x,tab_interno[i].cordenada_y1);
-      desenhar_peca(tab_interno[i].pecaP2,tab_interno[i].cordenada_x,tab_interno[i].cordenada_y2);
     }
   }
 }
