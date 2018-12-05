@@ -53,7 +53,7 @@ void jogar();
 void init_jogador();
 void init_peca();
 void init_caminhos();
-void desenhar_peca(int casa, int y, int x);
+void desenhar_peca(int casa, int jogador, int y, int x);
 void desenhar_sempeca(int y, int x, int rosa);
 void init();
 void tela_vitoria(int ply);
@@ -384,21 +384,21 @@ void init_caminho()
   }
 }
 
-void desenhar_peca(int casa,int y, int x)
+void desenhar_peca(int casa, int jogador, int y, int x)
 {
-    if(tab_interno[casa].pecaP2 == -1)
+    if(jogador == 1)
     {
       tabuleiro[y][x]     = tab_interno[casa].pecaP1 + '0';
-      tabuleiro[y][x+1]   =jogador1[0];
-      tabuleiro[y+1][x]   =jogador1[0];
-      tabuleiro[y+1][x+1] =jogador1[0];
+      tabuleiro[y][x+1]   = jogador1[0];
+      tabuleiro[y+1][x]   = jogador1[0];
+      tabuleiro[y+1][x+1] = jogador1[0];
     }
     else
     {
-      tabuleiro[y][x]     =tab_interno[casa].pecaP2 + '0';
-      tabuleiro[y][x+1]   =jogador2[0];
-      tabuleiro[y+1][x]   =jogador2[0];
-      tabuleiro[y+1][x+1] =jogador2[0];
+      tabuleiro[y][x]     = tab_interno[casa].pecaP2 + '0';
+      tabuleiro[y][x+1]   = jogador2[0];
+      tabuleiro[y+1][x]   = jogador2[0];
+      tabuleiro[y+1][x+1] = jogador2[0];
     }
 }
 
@@ -600,7 +600,7 @@ void mostrapeca()
     {
       continue;
     }
-    if(tab_interno[i].pecaP1==-1 && tab_interno[i].pecaP2==-1)
+    if(tab_interno[i].pecaP1 == -1 && tab_interno[i].pecaP2 == -1)
     {
       desenhar_sempeca(tab_interno[i].cordenada_y2,tab_interno[i].cordenada_x,tab_interno[i].rosa);
       desenhar_sempeca(tab_interno[i].cordenada_y1,tab_interno[i].cordenada_x,tab_interno[i].rosa);
@@ -608,17 +608,17 @@ void mostrapeca()
     if(tab_interno[i].pecaP1==-1 && tab_interno[i].pecaP2!=-1)
     {
       desenhar_sempeca(tab_interno[i].cordenada_y1,tab_interno[i].cordenada_x,tab_interno[i].rosa);
-      desenhar_peca(i,tab_interno[i].cordenada_y2,tab_interno[i].cordenada_x);
+      desenhar_peca(i, 2, tab_interno[i].cordenada_y2,tab_interno[i].cordenada_x);
     }
     if(tab_interno[i].pecaP1!=-1 && tab_interno[i].pecaP2==-1)
     {
       desenhar_sempeca(tab_interno[i].cordenada_y2,tab_interno[i].cordenada_x,tab_interno[i].rosa);
-      desenhar_peca(i,tab_interno[i].cordenada_y1,tab_interno[i].cordenada_x);
+      desenhar_peca(i, 1, tab_interno[i].cordenada_y1,tab_interno[i].cordenada_x);
     }
     if(tab_interno[i].pecaP1!=-1 && tab_interno[i].pecaP2!=-1)
     {
-      desenhar_peca(i,tab_interno[i].cordenada_y1,tab_interno[i].cordenada_x);
-      desenhar_peca(i,tab_interno[i].cordenada_y2,tab_interno[i].cordenada_x);
+      desenhar_peca(i, 1, tab_interno[i].cordenada_y1,tab_interno[i].cordenada_x);
+      desenhar_peca(i, 2, tab_interno[i].cordenada_y2,tab_interno[i].cordenada_x);
     }
   }
 }
