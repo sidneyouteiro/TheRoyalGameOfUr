@@ -434,7 +434,7 @@ int atualiza(int valorDado, int indice, int jogador)
    int idRival1, idRival2;
    if(jogador == 1)
    {
-
+     pecasP1[indice].Prox_casa->pecaP1=-1;
      pecasP1[indice].Prox_casa = (pecasP1[indice].Prox_casa) + valorDado;
      pecasP1[indice].Prox_casa->pecaP1 = pecasP1[indice].id;
      if(pecasP1[indice].Prox_casa->cordenada_y1 == 4 && pecasP1[indice].Prox_casa->pecaP2 > 0)
@@ -450,6 +450,7 @@ int atualiza(int valorDado, int indice, int jogador)
    }
    else
    {
+     pecasP2[indice].Prox_casa->pecaP2=-1;
      pecasP2[indice].Prox_casa = (pecasP2[indice].Prox_casa) + valorDado;
      pecasP2[indice].Prox_casa->pecaP2 = pecasP2[indice].id;
      if(pecasP2[indice].Prox_casa->cordenada_y2 == 4 && pecasP2[indice].Prox_casa->pecaP1 > 0)
