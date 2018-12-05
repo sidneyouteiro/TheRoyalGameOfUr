@@ -170,8 +170,8 @@ void jogar()
      escolha=verificamov(totdado, 1);
      if(escolha < 0)
      {
-       printf("\nNão há movimentos possiveis");
-       delay(3000);
+       printf("\n\n\nNão há movimentos possiveis");
+       delay(1500);
      }
      else
      {
@@ -182,8 +182,8 @@ void jogar()
     else
     {
       delay(50);
-      puts("\nPerdeu a vez");
-      delay(5000);
+      puts("\n\n\nPerdeu a vez");
+      delay(1500);
     }
     draw(2);
      //turno do jogador2
@@ -193,8 +193,8 @@ void jogar()
      escolha=verificamov(totdado, 2);
      if(escolha < 0)
      {
-       printf("\n\n\nNão há movimentos possiveis");
-       delay(3000);
+       printf("\n\nNão há movimentos possiveis");
+       delay(1500);
      }
      else
      {
@@ -205,8 +205,8 @@ void jogar()
     else
     {
       delay(50);
-      printf("\n\n\nPerdeu a vez");
-      delay(5000);
+      printf("\n\nPerdeu a vez");
+      delay(1500);
     }
   }
 }
@@ -263,7 +263,7 @@ int dados()
   fflush(stdout);
   delay(250);
 
-  printf("\n\n%d\n", total);
+  printf("\n\nTotal: %d\n", total);
 
   return total;
 }
@@ -473,11 +473,11 @@ int atualiza(int valorDado, int indice, int jogador)
 
 int verifica_vitoria()
 {
-  if(tab_interno[15].pecaP1 == 28)
+  if(placarP1 == 7)
   {
     return 1;
   }
-  if(tab_interno[15].pecaP2 == 28)
+  if(placarP2 == 7)
   {
     return 2;
   }
