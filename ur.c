@@ -19,6 +19,7 @@
 char tabuleiro[TY][TX]; /* array que guarda o tabuleiro*/
 int placarP1 = 0;
 int placarP2 = 0;
+char c[60];
 
 typedef struct _casa
 {
@@ -67,6 +68,7 @@ int valida(char* c,int var);
 int  verifica_vitoria();
 void mostrapeca();
 int atualiza(int valorDado, int indice, int jogador);
+
 int main()
 {
   int menu;
@@ -75,7 +77,7 @@ int main()
    print_tit();
    printf("\n\n\n");
    printf("\n1-Jogar\n2-Regras\n3-historia\n4-Creditos\n5-Sair\n\n->");
-   scanf("%d",&menu);
+   menu=valida(c,menu);
    switch (menu) {
      case 1: jogar();
              break;
@@ -89,7 +91,6 @@ int main()
 
      default:printf("Escolha uma das opções, por favor");
    }
-   menu=0;
    }
    return 0;
 }
@@ -112,8 +113,8 @@ void draw(int player)
     }
   }
   //debug
-  for(int i = 0; i < 16; i++)
-    printf(" |p1: %d, p2: %d| ", tab_interno[i].pecaP1, tab_interno[i].pecaP2);
+  /*for(int i = 0; i < 16; i++)
+    printf(" |p1: %d, p2: %d| ", tab_interno[i].pecaP1, tab_interno[i].pecaP2);*/
   //debug
   printf("\n");
   printf("\nPlacar: p1-%d p2-%d\n", placarP1, placarP2);
@@ -155,13 +156,10 @@ void jogar()
 {
   srandom(time(NULL));
   int totdado,vencedor;
-  int escolha;
+  int escolha,vit;
   init();
   while (1)
   {
-    //draw()->dado();->vericar movimentos possiveis->input do jogador->
-    //->atualizar tabuleiro
-
     /*turno do jogador 1*/
     draw(1);
     totdado = dados();
@@ -185,6 +183,12 @@ void jogar()
       puts("\n\n\nPerdeu a vez");
       delay(1500);
     }
+    vit=verifica_vitoria();
+    if(vit)
+    {
+       tela_vitoria(vit);
+       break;
+    }
     draw(2);
      //turno do jogador2
     totdado = dados();
@@ -193,7 +197,7 @@ void jogar()
      escolha=verificamov(totdado, 2);
      if(escolha < 0)
      {
-       printf("\n\nNão há movimentos possiveis");
+       printf("\n\n\nNão há movimentos possiveis");
        delay(1500);
      }
      else
@@ -205,8 +209,14 @@ void jogar()
     else
     {
       delay(50);
-      printf("\n\nPerdeu a vez");
+      printf("\n\n\nPerdeu a vez");
       delay(1500);
+    }
+    vit=verifica_vitoria();
+    if(vit)
+    {
+       tela_vitoria(vit);
+       break;
     }
   }
 }
@@ -216,6 +226,14 @@ void init_jogador(){
   scanf("%s", jogador1);
   printf("Nome do jogador 2:\n");
   scanf("%s", jogador2);
+  if(jogador1[0]==jogador2[0] && ('A'<=jogador1[0])<='Z')
+     jogador2[0]+=32;
+  else
+    if(jogador1[0]==jogador2[0] && ('a'<=jogador1[0])<='z')
+      jogador2[0]-=32;
+    else
+      if(jogador1[0]==jogador2[0])
+       jogador2+=3;
   }
 
 void init_peca()
@@ -451,6 +469,10 @@ int atualiza(int valorDado, int indice, int jogador)
      {
        placarP1++;
      }
+     if(pecasP1[indice].Prox_casa->rosa == 1)
+     {
+
+     }
    }
    else
    {
@@ -556,7 +578,6 @@ int verificamov(int dado, int jogador)
       printf("%d ", i + 1 );
     }
   }
-  char c[20];
   while(1)
   {
     printf("\n\n");
@@ -581,6 +602,7 @@ void tela_vitoria(int ply)
   if(ply==1) printf("Parabens %s",jogador1);
   else printf("Parabens %s",jogador2);
   delay(5000);
+  system("clear");
 }
 
 
