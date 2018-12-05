@@ -20,6 +20,7 @@ char tabuleiro[TY][TX]; /* array que guarda o tabuleiro*/
 int placarP1 = 0;
 int placarP2 = 0;
 char c[60];
+int vit=0;
 
 typedef struct _casa
 {
@@ -68,6 +69,7 @@ int valida(char* c,int var);
 int  verifica_vitoria();
 void mostrapeca();
 int atualiza(int valorDado, int indice, int jogador);
+int turno(int ply);
 
 int main()
 {
@@ -112,10 +114,6 @@ void draw(int player)
         printf("%c", tabuleiro[y][x]);
     }
   }
-  //debug
-  /*for(int i = 0; i < 16; i++)
-    printf(" |p1: %d, p2: %d| ", tab_interno[i].pecaP1, tab_interno[i].pecaP2);*/
-  //debug
   printf("\n");
   printf("\nPlacar: p1-%d p2-%d\n", placarP1, placarP2);
   if(player==1)
@@ -155,70 +153,22 @@ void init_tabuleiro()
 void jogar()
 {
   srandom(time(NULL));
-  int totdado,vencedor;
-  int escolha,vit;
   init();
-  while (1)
+  while (!vit)
   {
     /*turno do jogador 1*/
-    draw(1);
-    totdado = dados();
-    if(totdado)
+    if(turno(1) == 1)
     {
-     escolha=verificamov(totdado, 1);
-     if(escolha < 0)
-     {
-       printf("\n\n\nNão há movimentos possiveis");
-       delay(1500);
-     }
-     else
-     {
-       atualiza(totdado,escolha,1);
-       mostrapeca();
-     }
+      turno(1);
     }
-    else
+
+    /*turno do jogador 2*/
+    if(turno(2) == 2)
     {
-      delay(50);
-      puts("\n\n\nPerdeu a vez");
-      delay(1500);
-    }
-    vit=verifica_vitoria();
-    if(vit)
-    {
-       tela_vitoria(vit);
-       break;
-    }
-    draw(2);
-     //turno do jogador2
-    totdado = dados();
-    if(totdado)
-    {
-     escolha=verificamov(totdado, 2);
-     if(escolha < 0)
-     {
-       printf("\n\n\nNão há movimentos possiveis");
-       delay(1500);
-     }
-     else
-     {
-       atualiza(totdado,escolha,2);
-       mostrapeca();
-     }
-    }
-    else
-    {
-      delay(50);
-      printf("\n\n\nPerdeu a vez");
-      delay(1500);
-    }
-    vit=verifica_vitoria();
-    if(vit)
-    {
-       tela_vitoria(vit);
-       break;
+      turno(2);
     }
   }
+
 }
 
 void init_jogador(){
@@ -226,14 +176,14 @@ void init_jogador(){
   scanf("%s", jogador1);
   printf("Nome do jogador 2:\n");
   scanf("%s", jogador2);
-  if(jogador1[0]==jogador2[0] && ('A'<=jogador1[0])<='Z')
+  if(jogador1[0]==jogador2[0] && 'A'<=jogador1[0] && jogador1[0]<='Z')
      jogador2[0]+=32;
   else
-    if(jogador1[0]==jogador2[0] && ('a'<=jogador1[0])<='z')
+    if(jogador1[0]==jogador2[0] && 'a'<=jogador1[0] && jogador1[0]<='z')
       jogador2[0]-=32;
     else
       if(jogador1[0]==jogador2[0])
-       jogador2+=3;
+       jogador2[0]+=3;
   }
 
 void init_peca()
@@ -471,7 +421,7 @@ int atualiza(int valorDado, int indice, int jogador)
      }
      if(pecasP1[indice].Prox_casa->rosa == 1)
      {
-
+       return 1;
      }
    }
    else
@@ -489,17 +439,21 @@ int atualiza(int valorDado, int indice, int jogador)
      {
        placarP2++;
      }
+     if(pecasP2[indice].Prox_casa->rosa == 1)
+     {
+       return 2;
+     }
    }
    return 0;
 }
 
 int verifica_vitoria()
 {
-  if(placarP1 == 7)
+  if(placarP1 == 1)
   {
     return 1;
   }
-  if(placarP2 == 7)
+  if(placarP2 == 1)
   {
     return 2;
   }
@@ -601,8 +555,8 @@ void tela_vitoria(int ply)
   system("clear");
   if(ply==1) printf("Parabens %s",jogador1);
   else printf("Parabens %s",jogador2);
+  fflush(stdout);
   delay(5000);
-  system("clear");
 }
 
 
@@ -648,4 +602,39 @@ void mostrapeca()
       desenhar_peca(i, 2, tab_interno[i].cordenada_y2,tab_interno[i].cordenada_x);
     }
   }
+}
+
+int turno(int ply)
+{
+    int totdado, escolha;
+    int rosa = 0;
+    draw(ply);
+    totdado = dados();
+    if(totdado)
+    {
+      escolha=verificamov(totdado, ply);
+      if(escolha < 0)
+      {
+        printf("\n\n\nNão há movimentos possiveis");
+        fflush(stdout);
+        delay(1500);
+      }
+      else
+      {
+        rosa = atualiza(totdado,escolha,ply);
+        mostrapeca();
+      }
+    }
+    else
+    {
+      printf("\n\n\nPerdeu a vez");
+      fflush(stdout);
+      delay(1500);
+    }
+  vit = verifica_vitoria();
+  if(vit)
+  {
+    tela_vitoria(vit);
+  }
+  return rosa;
 }
