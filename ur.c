@@ -111,8 +111,12 @@ void draw(int player)
         printf("%c", tabuleiro[y][x]);
     }
   }
+  //debug
+  for(int i = 0; i < 16; i++)
+    printf(" |p1: %d, p2: %d| ", tab_interno[i].pecaP1, tab_interno[i].pecaP2);
+  //debug
   printf("\n");
-  printf("Placar: p1-%d p2-%d", placarP1, placarP2);
+  printf("\nPlacar: p1-%d p2-%d\n", placarP1, placarP2);
   if(player==1)
   {
     printf("\nTurno de %s\n",jogador1);
@@ -455,9 +459,9 @@ int atualiza(int valorDado, int indice, int jogador)
      pecasP2[indice].Prox_casa->pecaP2 = pecasP2[indice].id;
      if(pecasP2[indice].Prox_casa->cordenada_y2 == 4 && pecasP2[indice].Prox_casa->pecaP1 > 0)
      {
-       idRival1 = (pecasP2[indice].Prox_casa->pecaP2) - 1;
+       idRival1 = (pecasP2[indice].Prox_casa->pecaP1) - 1;
        pecasP1[idRival1].Prox_casa = &tab_interno[0];
-       pecasP2[indice].Prox_casa->pecaP2 = -1;
+       pecasP2[indice].Prox_casa->pecaP1 = -1;
      }
      if(pecasP2[indice].Prox_casa == &tab_interno[15])
      {
@@ -501,7 +505,7 @@ int verificamov(int dado, int jogador)
         pecasJogaveis[i] = 0;
         continue;
       }
-      if(casaQueVai->rosa == 1 && casaQueVai->pecaP2 > 0)
+      if(casaQueVai->rosa == 1 && casaQueVai->pecaP2 > 0 && casaQueVai == &tab_interno[8])
       {
         pecasJogaveis[i] = 0;
         continue;
@@ -525,7 +529,7 @@ int verificamov(int dado, int jogador)
         pecasJogaveis[i] = 0;
         continue;
       }
-      if(casaQueVai->rosa == 1 && casaQueVai->pecaP1 > 0)
+      if(casaQueVai->rosa == 1 && casaQueVai->pecaP1 > 0 && casaQueVai == &tab_interno[8])
       {
         pecasJogaveis[i] = 0;
         continue;
