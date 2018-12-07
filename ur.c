@@ -161,7 +161,7 @@ void jogar()
     {
       turno(1);
     }
-
+    if(vit) break;
     /*turno do jogador 2*/
     if(turno(2) == 2)
     {
@@ -449,11 +449,11 @@ int atualiza(int valorDado, int indice, int jogador)
 
 int verifica_vitoria()
 {
-  if(placarP1 == 1)
+  if(placarP1 == 7)
   {
     return 1;
   }
-  if(placarP2 == 1)
+  if(placarP2 == 7)
   {
     return 2;
   }
@@ -553,8 +553,8 @@ int verificamov(int dado, int jogador)
 void tela_vitoria(int ply)
 {
   system("clear");
-  if(ply==1) printf("Parabens %s",jogador1);
-  else printf("Parabens %s",jogador2);
+  if(ply==1) printf("Parabens %s!!!",jogador1);
+  else printf("Parabens %s!!!",jogador2);
   fflush(stdout);
   delay(5000);
 }
